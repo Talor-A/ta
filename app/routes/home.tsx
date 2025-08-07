@@ -15,13 +15,18 @@ export default function Home() {
     <main>
       <h1>Talor Anderson</h1>
       <p>
-        Engineer at Replit building developer tools and AI systems. Based in San
-        Diego, I think deeply about creating technology that genuinely helps
-        people rather than exploiting them. Outside of code, I'm climbing,
-        surfing, cycling, and lifting.
+        I'm an AI engineer at Honeycomb.io, based in San Diego, California. Previously, 
+        I was a product engineer at Replit. I care deeply about building tools to 
+        empower humans. My work has focused on transforming deeply complex systems 
+        into intuitive abstractions.
+
+        Outside of work, I enjoy climbing, weightlifting, biking, and lifting.
       </p>
 
-      <h2>Contact</h2>
+      <p>
+        You can find me at any of these places:
+      </p>
+
       <p>
         <a href="https://twitter.com/Talor_A">Twitter</a> •{" "}
         <a href="https://github.com/talor-a">GitHub</a> •{" "}

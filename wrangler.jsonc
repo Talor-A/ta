@@ -9,8 +9,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "your-database-name",
-      "database_id": "your-database-id",
+      "database_name": "ta-db",
+      "database_id": "bb1dffa7-ec33-4f38-9ac1-6507926dc3fc",
       "migrations_dir": "drizzle"
     }
   ]

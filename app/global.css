@@ -98,3 +98,11 @@ li {
 p {
   text-wrap: balance;
 }
+
+.links a {
+  color: var(--text-color);
+}
+
+.links a:visited {
+  color: var(--text-color);
+}

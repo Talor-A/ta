@@ -27,7 +27,7 @@ export default function Home() {
         You can find me at any of these places:
       </p>
 
-      <p>
+      <p className="links">
         <a href="https://twitter.com/Talor_A">Twitter</a> •{" "}
         <a href="https://github.com/talor-a">GitHub</a> •{" "}
         <a href="https://www.linkedin.com/in/taloranderson/">LinkedIn</a>

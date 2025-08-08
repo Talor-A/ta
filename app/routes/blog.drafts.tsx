@@ -1,11 +1,11 @@
 import type { Route } from "./+types/blog.drafts";
 import { blogPosts } from "../../database/schema";
 import { isNull } from "drizzle-orm";
-import { requireAuth } from "../../lib/auth-utils";
+import { requireAuth } from "../lib/auth-utils";
 
 export async function loader({ context, request }: Route.LoaderArgs) {
   // Require authentication
-  await requireAuth(request, context.db);
+  await requireAuth(request);
   const drafts = await context.db
     .select({
       id: blogPosts.id,

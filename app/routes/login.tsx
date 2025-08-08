@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Route } from "./+types/login";
-import { authClient } from "../auth-client";
+import { authClient } from "../lib/auth-client";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -135,6 +135,12 @@ export default function Login() {
       </form>
 
       <div style={{ textAlign: "center" }}>
+        <p>
+          Need an account?{" "}
+          <a href="/signup" style={{ color: "#007acc" }}>
+            Sign up
+          </a>
+        </p>
         <a
           href="/"
           style={{ color: "#666", textDecoration: "none", fontSize: "14px" }}

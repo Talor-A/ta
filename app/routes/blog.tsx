@@ -1,11 +1,11 @@
 import type { Route } from "./+types/blog";
 import { blogPosts } from "../../database/schema";
 import { isNotNull } from "drizzle-orm";
-import { getOptionalAuth } from "../../lib/auth-utils";
+import { getOptionalAuth } from "../lib/auth-utils";
 
 export async function loader({ context, request }: Route.LoaderArgs) {
   // Check if user is authenticated (optional)
-  const session = await getOptionalAuth(request, context.db);
+  const session = await getOptionalAuth(request);
   const posts = await context.db
     .select({
       id: blogPosts.id,

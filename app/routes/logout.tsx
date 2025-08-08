@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Route } from "./+types/logout";
-import { authClient } from "../auth-client";
+import { authClient } from "../lib/auth-client";
 
 export function meta({}: Route.MetaArgs) {
   return [

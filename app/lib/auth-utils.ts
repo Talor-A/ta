@@ -1,8 +1,6 @@
-import { createAuth } from "./auth";
+import { auth } from "./auth";
 
-export async function requireAuth(request: Request, db: any) {
-  const auth = createAuth(db);
-
+export async function requireAuth(request: Request) {
   try {
     const session = await auth.api.getSession({
       headers: request.headers,
@@ -32,9 +30,7 @@ export async function requireAuth(request: Request, db: any) {
   }
 }
 
-export async function getOptionalAuth(request: Request, db: any) {
-  const auth = createAuth(db);
-
+export async function getOptionalAuth(request: Request) {
   try {
     return await auth.api.getSession({
       headers: request.headers,

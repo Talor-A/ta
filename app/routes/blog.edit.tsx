@@ -3,11 +3,11 @@ import { useFetcher } from "react-router";
 import type { Route } from "./+types/blog.edit";
 import { blogPosts } from "../../database/schema";
 import { eq, desc, isNull } from "drizzle-orm";
-import { requireAuth } from "../../lib/auth-utils";
+import { requireAuth } from "../lib/auth-utils";
 
 export async function loader({ context, request }: Route.LoaderArgs) {
   // Require authentication
-  await requireAuth(request, context.db);
+  await requireAuth(request);
   const url = new URL(request.url);
   const editId = url.searchParams.get("edit");
 
@@ -40,7 +40,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 
 export async function action({ context, request }: Route.ActionArgs) {
   // Require authentication
-  await requireAuth(request, context.db);
+  await requireAuth(request);
 
   const formData = await request.formData();
   const intent = formData.get("intent") as string;

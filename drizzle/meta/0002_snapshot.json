@@ -46,9 +46,7 @@
       "indexes": {
         "blogPosts_slug_unique": {
           "name": "blogPosts_slug_unique",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "isUnique": true
         }
       },
@@ -85,9 +83,7 @@
       "indexes": {
         "guestBook_email_unique": {
           "name": "guestBook_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         }
       },

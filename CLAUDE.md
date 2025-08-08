@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Architecture
 
 This is a React Router v7 application deployed on Cloudflare Workers with the following stack:
+
 - **Runtime**: Cloudflare Workers with Server-Side Rendering (SSR)
 - **Frontend**: React 19 with React Router v7 for routing and data loading
 - **Styling**: TailwindCSS v4 with Vite plugin integration
@@ -17,6 +18,7 @@ This is a React Router v7 application deployed on Cloudflare Workers with the fo
 **Important: Always use `bun` instead of `npm` for all package management and script execution.**
 
 ### Development
+
 ```bash
 bun run dev              # Start development server with HMR at localhost:5173
 bun run db:migrate       # Run database migrations locally
@@ -24,6 +26,7 @@ bun run typecheck        # Run TypeScript type checking with cf-typegen and reac
 ```
 
 ### Database Management
+
 ```bash
 bun run db:generate      # Generate Drizzle schema migrations
 bun run db:migrate       # Apply migrations to local D1 database
@@ -31,6 +34,7 @@ bun run db:migrate-production  # Apply migrations to production D1 database
 ```
 
 ### Build and Deploy
+
 ```bash
 bun run build           # Build for production using react-router build
 bun run deploy          # Build and deploy to Cloudflare Workers
@@ -38,6 +42,7 @@ bun run cf-typegen      # Generate Cloudflare Workers types
 ```
 
 ### Package Management
+
 ```bash
 bun add <package>        # Install dependencies (equivalent to npm install)
 bun add -d <package>     # Install dev dependencies
@@ -45,6 +50,7 @@ bun remove <package>     # Remove dependencies
 ```
 
 ### Database Operations (via Wrangler CLI)
+
 ```bash
 bun wrangler d1 execute DB --local --command "SELECT * FROM tableName;"     # Query local database
 bun wrangler d1 execute DB --remote --command "SELECT * FROM tableName;"    # Query production database
@@ -53,6 +59,7 @@ bun wrangler d1 execute DB --remote --command "SELECT * FROM tableName;"    # Qu
 ## Architecture Details
 
 ### Database Layer
+
 - **Schema**: `database/schema.ts` - Drizzle ORM schema definitions
 - **Config**: `drizzle.config.ts` - Database configuration for D1 HTTP driver
 - **Migrations**: `drizzle/` directory contains generated SQL migrations
@@ -62,6 +69,7 @@ bun wrangler d1 execute DB --remote --command "SELECT * FROM tableName;"    # Qu
   - `testPosts` table for development testing
 
 ### Application Structure
+
 - **Entry Point**: `workers/app.ts` - Cloudflare Workers entry point with database injection
 - **Server Entry**: `app/entry.server.tsx` - React Router server-side entry
 - **Routes**: `app/routes/` - Manual route configuration in `app/routes.ts`
@@ -69,13 +77,17 @@ bun wrangler d1 execute DB --remote --command "SELECT * FROM tableName;"    # Qu
 - **Global Styles**: `app/global.css` - Global CSS styles
 
 ### Routing System
+
 React Router v7 uses manual route configuration in `app/routes.ts`. Routes must be explicitly registered:
+
 - Index route: `index("routes/home.tsx")` maps to `/`
 - Static routes: `route("blog", "routes/blog.tsx")` maps to `/blog`
 - Dynamic routes: `route("blog/:slug", "routes/blog.$slug.tsx")` maps to `/blog/hello-world`
 
 ### Data Loading Pattern
+
 Routes use React Router's data loading with Cloudflare Workers context:
+
 ```typescript
 export async function loader({ context }: Route.LoaderArgs) {
   // context.db provides access to Drizzle ORM instance
@@ -84,12 +96,14 @@ export async function loader({ context }: Route.LoaderArgs) {
 ```
 
 ### Blog System
+
 - Blog posts support markdown content with basic parsing
 - Published posts have non-null `publishedDate` (Unix timestamp)
 - Draft posts have null `publishedDate` and are hidden from public routes
 - Slug-based URLs for SEO-friendly permalinks
 
 ### Configuration Files
+
 - **Wrangler**: `wrangler.jsonc` - Cloudflare Workers configuration with D1 binding
 - **Vite**: `vite.config.ts` - Build configuration with Cloudflare, TailwindCSS, and React Router plugins
 - **TypeScript**: Multiple tsconfig files for different environments (main, node, cloudflare)

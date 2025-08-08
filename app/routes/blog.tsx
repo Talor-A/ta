@@ -16,7 +16,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
     .from(blogPosts)
     .where(isNotNull(blogPosts.publishedDate))
     .orderBy(blogPosts.publishedDate);
-  
+
   return { posts, session };
 }
 
@@ -32,71 +32,78 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Blog({ loaderData }: Route.ComponentProps) {
   const { posts, session } = loaderData;
-  
+
   return (
     <main>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+        }}
+      >
         <div>
           <h1>Blog</h1>
           <p>Thoughts and writings on AI, engineering, and technology</p>
         </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
           {session ? (
             <>
-              <span style={{ fontSize: '14px', color: '#666' }}>
+              <span style={{ fontSize: "14px", color: "#666" }}>
                 Welcome, {session.user.name}
               </span>
-              <a 
+              <a
                 href="/blog/drafts"
                 style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#f8f9fa',
-                  color: '#495057',
-                  textDecoration: 'none',
-                  borderRadius: '4px',
-                  border: '1px solid #dee2e6',
-                  fontSize: '14px'
+                  padding: "10px 20px",
+                  backgroundColor: "#f8f9fa",
+                  color: "#495057",
+                  textDecoration: "none",
+                  borderRadius: "4px",
+                  border: "1px solid #dee2e6",
+                  fontSize: "14px",
                 }}
               >
                 Drafts
               </a>
-              <a 
+              <a
                 href="/blog/edit"
                 style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#007acc',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: '4px',
-                  fontSize: '14px'
+                  padding: "10px 20px",
+                  backgroundColor: "#007acc",
+                  color: "white",
+                  textDecoration: "none",
+                  borderRadius: "4px",
+                  fontSize: "14px",
                 }}
               >
                 New Post
               </a>
-              <a 
+              <a
                 href="/logout"
                 style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#dc3545',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: '4px',
-                  fontSize: '14px'
+                  padding: "10px 20px",
+                  backgroundColor: "#dc3545",
+                  color: "white",
+                  textDecoration: "none",
+                  borderRadius: "4px",
+                  fontSize: "14px",
                 }}
               >
                 Sign Out
               </a>
             </>
           ) : (
-            <a 
+            <a
               href="/login"
               style={{
-                padding: '10px 20px',
-                backgroundColor: '#007acc',
-                color: 'white',
-                textDecoration: 'none',
-                borderRadius: '4px',
-                fontSize: '14px'
+                padding: "10px 20px",
+                backgroundColor: "#007acc",
+                color: "white",
+                textDecoration: "none",
+                borderRadius: "4px",
+                fontSize: "14px",
               }}
             >
               Sign In
@@ -104,18 +111,30 @@ export default function Blog({ loaderData }: Route.ComponentProps) {
           )}
         </div>
       </div>
-      
+
       {posts.length > 0 ? (
         <div>
           {posts.map((post) => (
-            <article key={post.id} style={{ marginBottom: '30px', paddingBottom: '20px', borderBottom: '1px solid #eee' }}>
+            <article
+              key={post.id}
+              style={{
+                marginBottom: "30px",
+                paddingBottom: "20px",
+                borderBottom: "1px solid #eee",
+              }}
+            >
               <h2>
-                <a href={`/blog/${post.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <a
+                  href={`/blog/${post.slug}`}
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
                   {post.title}
                 </a>
               </h2>
-              <time style={{ color: '#666', fontSize: '0.9em' }}>
-                {post.publishedDate ? new Date(post.publishedDate * 1000).toLocaleDateString() : ''}
+              <time style={{ color: "#666", fontSize: "0.9em" }}>
+                {post.publishedDate
+                  ? new Date(post.publishedDate * 1000).toLocaleDateString()
+                  : ""}
               </time>
             </article>
           ))}

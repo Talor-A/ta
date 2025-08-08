@@ -10,7 +10,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   await requireAuth(request, context.db);
   const url = new URL(request.url);
   const editId = url.searchParams.get("edit");
-  
+
   if (editId) {
     // Load existing post for editing
     const post = await context.db
@@ -18,14 +18,14 @@ export async function loader({ context, request }: Route.LoaderArgs) {
       .from(blogPosts)
       .where(eq(blogPosts.id, parseInt(editId)))
       .get();
-    
+
     if (!post) {
       throw new Response("Post not found", { status: 404 });
     }
-    
+
     return { post };
   }
-  
+
   // Check for existing draft for new posts
   const existingDraft = await context.db
     .select()
@@ -34,14 +34,14 @@ export async function loader({ context, request }: Route.LoaderArgs) {
     .orderBy(desc(blogPosts.id))
     .limit(1)
     .get();
-  
+
   return { post: existingDraft };
 }
 
 export async function action({ context, request }: Route.ActionArgs) {
   // Require authentication
   await requireAuth(request, context.db);
-  
+
   const formData = await request.formData();
   const intent = formData.get("intent") as string;
   const title = formData.get("title") as string;
@@ -62,14 +62,24 @@ export async function action({ context, request }: Route.ActionArgs) {
           .set({
             title,
             body,
-            slug: slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, ''),
+            slug:
+              slug ||
+              title
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/-+$/, ""),
           })
           .where(eq(blogPosts.id, parseInt(postId)));
-        
+
         return { success: true, message: "Draft saved" };
       } else {
         // Create new draft
-        const newSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+        const newSlug =
+          slug ||
+          title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/-+$/, "");
         const result = await context.db
           .insert(blogPosts)
           .values({
@@ -79,12 +89,16 @@ export async function action({ context, request }: Route.ActionArgs) {
             publishedDate: null,
           })
           .returning({ id: blogPosts.id });
-        
-        return { success: true, message: "Draft created", postId: result[0]?.id };
+
+        return {
+          success: true,
+          message: "Draft created",
+          postId: result[0]?.id,
+        };
       }
     } else if (intent === "publish") {
       const publishedDate = Math.floor(Date.now() / 1000);
-      
+
       if (postId) {
         // Update existing post and publish
         await context.db
@@ -92,23 +106,31 @@ export async function action({ context, request }: Route.ActionArgs) {
           .set({
             title,
             body,
-            slug: slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, ''),
+            slug:
+              slug ||
+              title
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/-+$/, ""),
             publishedDate,
           })
           .where(eq(blogPosts.id, parseInt(postId)));
       } else {
         // Create new published post
-        const newSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
-        await context.db
-          .insert(blogPosts)
-          .values({
-            title,
-            body,
-            slug: newSlug,
-            publishedDate,
-          });
+        const newSlug =
+          slug ||
+          title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/-+$/, "");
+        await context.db.insert(blogPosts).values({
+          title,
+          body,
+          slug: newSlug,
+          publishedDate,
+        });
       }
-      
+
       return { success: true, message: "Post published", redirect: "/blog" };
     }
   } catch (error) {
@@ -132,9 +154,12 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   const fetcher = useFetcher();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   const [title, setTitle] = useState(loaderData.post?.title || "");
-  const [content, setContent] = useState(loaderData.post?.body || "# New Blog Post\n\nStart writing your content here...");
+  const [content, setContent] = useState(
+    loaderData.post?.body ||
+      "# New Blog Post\n\nStart writing your content here...",
+  );
   const [slug, setSlug] = useState(loaderData.post?.slug || "");
   const [postId, setPostId] = useState(loaderData.post?.id?.toString() || "");
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -143,14 +168,14 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   // Autosave function for drafts only
   const autosave = useCallback(() => {
     if (isPublished || !title.trim() || !content.trim()) return;
-    
+
     const formData = new FormData();
     formData.append("intent", "autosave");
     formData.append("title", title);
     formData.append("body", content);
     formData.append("slug", slug);
     if (postId) formData.append("postId", postId);
-    
+
     fetcher.submit(formData, { method: "post" });
   }, [isPublished, title, content, slug, postId, fetcher]);
 
@@ -170,12 +195,12 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
       if (autosaveTimeoutRef.current) {
         clearTimeout(autosaveTimeoutRef.current);
       }
-      
+
       autosaveTimeoutRef.current = setTimeout(() => {
         autosave();
       }, 2000); // Auto-save after 2 seconds of inactivity
     }
-    
+
     return () => {
       if (autosaveTimeoutRef.current) {
         clearTimeout(autosaveTimeoutRef.current);
@@ -200,10 +225,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
     // Restore cursor position
     setTimeout(() => {
       textarea.focus();
-      textarea.setSelectionRange(
-        start + prefix.length,
-        end + prefix.length
-      );
+      textarea.setSelectionRange(start + prefix.length, end + prefix.length);
     }, 0);
   };
 
@@ -227,16 +249,16 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
     // Only proceed if there's selected text
     if (start === end) return;
 
-    const pastedText = e.clipboardData?.getData('text') || '';
-    
+    const pastedText = e.clipboardData?.getData("text") || "";
+
     // Check if pasted text is a URL
     if (isValidUrl(pastedText)) {
       e.preventDefault();
-      
+
       const beforeText = textarea.value.substring(0, start);
       const afterText = textarea.value.substring(end);
       const linkMarkdown = `[${selectedText}](${pastedText})`;
-      
+
       const newText = beforeText + linkMarkdown + afterText;
       setContent(newText);
 
@@ -244,7 +266,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
         textarea.focus();
         textarea.setSelectionRange(
           start + linkMarkdown.length,
-          start + linkMarkdown.length
+          start + linkMarkdown.length,
         );
       }, 0);
     }
@@ -256,13 +278,13 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const lines = textarea.value.split('\n');
-    
+    const lines = textarea.value.split("\n");
+
     // Find which lines are selected
     let startLine = 0;
     let endLine = 0;
     let currentPos = 0;
-    
+
     for (let i = 0; i < lines.length; i++) {
       if (currentPos <= start && start <= currentPos + lines[i].length) {
         startLine = i;
@@ -276,35 +298,37 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
 
     // Check if all selected lines are commented
     const selectedLines = lines.slice(startLine, endLine + 1);
-    const allCommented = selectedLines.every(line => line.trim().startsWith('<!-- ') && line.trim().endsWith(' -->'));
+    const allCommented = selectedLines.every(
+      (line) => line.trim().startsWith("<!-- ") && line.trim().endsWith(" -->"),
+    );
 
     // Toggle comments
     for (let i = startLine; i <= endLine; i++) {
       if (allCommented) {
         // Remove comment
-        lines[i] = lines[i].replace(/^\s*<!-- /, '').replace(/ -->\s*$/, '');
+        lines[i] = lines[i].replace(/^\s*<!-- /, "").replace(/ -->\s*$/, "");
       } else {
         // Add comment
         lines[i] = `<!-- ${lines[i]} -->`;
       }
     }
 
-    setContent(lines.join('\n'));
+    setContent(lines.join("\n"));
   };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey) {
         switch (e.key.toLowerCase()) {
-          case 'b':
+          case "b":
             e.preventDefault();
-            wrapSelection('**');
+            wrapSelection("**");
             break;
-          case 'i':
+          case "i":
             e.preventDefault();
-            wrapSelection('*');
+            wrapSelection("*");
             break;
-          case '/':
+          case "/":
             e.preventDefault();
             toggleBlockComment();
             break;
@@ -314,15 +338,15 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
 
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.addEventListener('paste', handlePaste);
+      textarea.addEventListener("paste", handlePaste);
     }
 
-    document.addEventListener('keydown', handleKeyDown);
-    
+    document.addEventListener("keydown", handleKeyDown);
+
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
       if (textarea) {
-        textarea.removeEventListener('paste', handlePaste);
+        textarea.removeEventListener("paste", handlePaste);
       }
     };
   }, []);
@@ -334,7 +358,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
     formData.append("body", content);
     formData.append("slug", slug);
     if (postId) formData.append("postId", postId);
-    
+
     fetcher.submit(formData, { method: "post" });
   };
 
@@ -345,7 +369,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
     formData.append("body", content);
     formData.append("slug", slug);
     if (postId) formData.append("postId", postId);
-    
+
     fetcher.submit(formData, { method: "post" });
   };
 
@@ -359,12 +383,23 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   const isLoading = fetcher.state === "submitting";
 
   return (
-    <main style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-      <div style={{ marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+    <main style={{ maxWidth: "800px", margin: "0 auto", padding: "20px" }}>
+      <div style={{ marginBottom: "20px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "10px",
+          }}
+        >
           <h1>Blog Editor</h1>
-          <div style={{ fontSize: '0.8em', color: '#666' }}>
-            {isPublished && <span style={{ color: '#28a745', fontWeight: 'bold' }}>Published</span>}
+          <div style={{ fontSize: "0.8em", color: "#666" }}>
+            {isPublished && (
+              <span style={{ color: "#28a745", fontWeight: "bold" }}>
+                Published
+              </span>
+            )}
             {!isPublished && lastSaved && (
               <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
             )}
@@ -374,25 +409,27 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
             {isLoading && <span>Saving...</span>}
           </div>
         </div>
-        <p style={{ color: '#666', fontSize: '0.9em' }}>
-          Use <kbd>Cmd+B</kbd> for bold, <kbd>Cmd+I</kbd> for italic, <kbd>Cmd+/</kbd> for comments. Select text and <kbd>Cmd+V</kbd> a URL to create links.
+        <p style={{ color: "#666", fontSize: "0.9em" }}>
+          Use <kbd>Cmd+B</kbd> for bold, <kbd>Cmd+I</kbd> for italic,{" "}
+          <kbd>Cmd+/</kbd> for comments. Select text and <kbd>Cmd+V</kbd> a URL
+          to create links.
         </p>
       </div>
 
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: "20px" }}>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Post title..."
           style={{
-            width: '100%',
-            padding: '12px',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            fontSize: '18px',
-            fontWeight: 'bold',
-            marginBottom: '10px'
+            width: "100%",
+            padding: "12px",
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+            fontSize: "18px",
+            fontWeight: "bold",
+            marginBottom: "10px",
           }}
         />
         <input
@@ -401,49 +438,49 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
           onChange={(e) => setSlug(e.target.value)}
           placeholder="url-slug (auto-generated from title if empty)"
           style={{
-            width: '100%',
-            padding: '8px 12px',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            fontSize: '14px',
-            color: '#666'
+            width: "100%",
+            padding: "8px 12px",
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+            fontSize: "14px",
+            color: "#666",
           }}
         />
       </div>
 
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-        <button 
-          onClick={() => wrapSelection('**')}
-          style={{ 
-            padding: '8px 12px', 
-            border: '1px solid #ccc', 
-            borderRadius: '4px',
-            background: '#f5f5f5',
-            cursor: 'pointer'
+      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+        <button
+          onClick={() => wrapSelection("**")}
+          style={{
+            padding: "8px 12px",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+            background: "#f5f5f5",
+            cursor: "pointer",
           }}
         >
           <strong>B</strong>
         </button>
-        <button 
-          onClick={() => wrapSelection('*')}
-          style={{ 
-            padding: '8px 12px', 
-            border: '1px solid #ccc', 
-            borderRadius: '4px',
-            background: '#f5f5f5',
-            cursor: 'pointer'
+        <button
+          onClick={() => wrapSelection("*")}
+          style={{
+            padding: "8px 12px",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+            background: "#f5f5f5",
+            cursor: "pointer",
           }}
         >
           <em>I</em>
         </button>
-        <button 
+        <button
           onClick={toggleBlockComment}
-          style={{ 
-            padding: '8px 12px', 
-            border: '1px solid #ccc', 
-            borderRadius: '4px',
-            background: '#f5f5f5',
-            cursor: 'pointer'
+          style={{
+            padding: "8px 12px",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+            background: "#f5f5f5",
+            cursor: "pointer",
           }}
         >
           Comment
@@ -456,66 +493,82 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
         onChange={(e) => setContent(e.target.value)}
         placeholder="Write your blog post in Markdown..."
         style={{
-          width: '100%',
-          height: '400px',
-          padding: '15px',
-          border: '1px solid #ddd',
-          borderRadius: '4px',
+          width: "100%",
+          height: "400px",
+          padding: "15px",
+          border: "1px solid #ddd",
+          borderRadius: "4px",
           fontFamily: 'Monaco, Consolas, "Lucida Console", monospace',
-          fontSize: '14px',
-          lineHeight: '1.5',
-          resize: 'vertical'
+          fontSize: "14px",
+          lineHeight: "1.5",
+          resize: "vertical",
         }}
       />
 
-      <div style={{ marginTop: '20px', display: 'flex', gap: '10px', alignItems: 'center', minHeight: '44px' }}>
+      <div
+        style={{
+          marginTop: "20px",
+          display: "flex",
+          gap: "10px",
+          alignItems: "center",
+          minHeight: "44px",
+        }}
+      >
         <button
           onClick={handleSave}
           disabled={isLoading}
           style={{
-            padding: '10px 20px',
-            backgroundColor: isLoading ? '#ccc' : '#007acc',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
+            padding: "10px 20px",
+            backgroundColor: isLoading ? "#ccc" : "#007acc",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: isLoading ? "not-allowed" : "pointer",
             opacity: isPublished ? 0 : 1,
-            pointerEvents: isPublished ? 'none' : 'auto',
-            visibility: isPublished ? 'hidden' : 'visible'
+            pointerEvents: isPublished ? "none" : "auto",
+            visibility: isPublished ? "hidden" : "visible",
           }}
         >
-          {isLoading && fetcher.formData?.get('intent') === 'save' ? 'Saving...' : 'Save Draft'}
+          {isLoading && fetcher.formData?.get("intent") === "save"
+            ? "Saving..."
+            : "Save Draft"}
         </button>
         <button
           onClick={handlePublish}
           disabled={isLoading}
           style={{
-            padding: '10px 20px',
-            backgroundColor: isLoading ? '#ccc' : '#28a745',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: isLoading ? 'not-allowed' : 'pointer'
+            padding: "10px 20px",
+            backgroundColor: isLoading ? "#ccc" : "#28a745",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: isLoading ? "not-allowed" : "pointer",
           }}
         >
-          {isLoading && (fetcher.formData?.get('intent') === 'publish' || fetcher.formData?.get('intent') === 'autosave') ? 'Publishing...' : (isPublished ? 'Update' : 'Publish')}
+          {isLoading &&
+          (fetcher.formData?.get("intent") === "publish" ||
+            fetcher.formData?.get("intent") === "autosave")
+            ? "Publishing..."
+            : isPublished
+              ? "Update"
+              : "Publish"}
         </button>
-        <a 
+        <a
           href="/blog"
           style={{
-            padding: '10px 20px',
-            backgroundColor: '#6c757d',
-            color: 'white',
-            textDecoration: 'none',
-            borderRadius: '4px',
-            display: 'inline-block'
+            padding: "10px 20px",
+            backgroundColor: "#6c757d",
+            color: "white",
+            textDecoration: "none",
+            borderRadius: "4px",
+            display: "inline-block",
           }}
         >
           Cancel
         </a>
-        
+
         {fetcher.data?.error && (
-          <span style={{ color: '#dc3545', marginLeft: '10px' }}>
+          <span style={{ color: "#dc3545", marginLeft: "10px" }}>
             {fetcher.data.error}
           </span>
         )}

@@ -21,11 +21,18 @@ export default function Test({ loaderData }: Route.ComponentProps) {
     <main>
       <h1>Test Posts</h1>
       <p>Reading from the testPosts table:</p>
-      
+
       {loaderData.posts.length > 0 ? (
         <div>
           {loaderData.posts.map((post) => (
-            <div key={post.id} style={{ marginBottom: '20px', border: '1px solid #ccc', padding: '10px' }}>
+            <div
+              key={post.id}
+              style={{
+                marginBottom: "20px",
+                border: "1px solid #ccc",
+                padding: "10px",
+              }}
+            >
               <h2>{post.title}</h2>
               <p>{post.content}</p>
               <small>ID: {post.id}</small>

@@ -1,12 +1,12 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
-import { env } from 'cloudflare:workers'
+import { env } from "cloudflare:workers";
 
 const db = env.DB;
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
-    provider: "sqlite"
+    provider: "sqlite",
   }),
   emailAndPassword: {
     enabled: true,

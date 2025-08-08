@@ -14,25 +14,34 @@ This is a React Router v7 application deployed on Cloudflare Workers with the fo
 
 ## Key Commands
 
+**Important: Always use `bun` instead of `npm` for all package management and script execution.**
+
 ### Development
 ```bash
-npm run dev              # Start development server with HMR at localhost:5173
-npm run db:migrate       # Run database migrations locally
-npm run typecheck        # Run TypeScript type checking with cf-typegen and react-router typegen
+bun run dev              # Start development server with HMR at localhost:5173
+bun run db:migrate       # Run database migrations locally
+bun run typecheck        # Run TypeScript type checking with cf-typegen and react-router typegen
 ```
 
 ### Database Management
 ```bash
-npm run db:generate      # Generate Drizzle schema migrations
-npm run db:migrate       # Apply migrations to local D1 database
-npm run db:migrate-production  # Apply migrations to production D1 database
+bun run db:generate      # Generate Drizzle schema migrations
+bun run db:migrate       # Apply migrations to local D1 database
+bun run db:migrate-production  # Apply migrations to production D1 database
 ```
 
 ### Build and Deploy
 ```bash
-npm run build           # Build for production using react-router build
-npm run deploy          # Build and deploy to Cloudflare Workers
-npm run cf-typegen      # Generate Cloudflare Workers types
+bun run build           # Build for production using react-router build
+bun run deploy          # Build and deploy to Cloudflare Workers
+bun run cf-typegen      # Generate Cloudflare Workers types
+```
+
+### Package Management
+```bash
+bun add <package>        # Install dependencies (equivalent to npm install)
+bun add -d <package>     # Install dev dependencies
+bun remove <package>     # Remove dependencies
 ```
 
 ### Database Operations (via Wrangler CLI)

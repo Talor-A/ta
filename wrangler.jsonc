@@ -1,6 +1,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "ta",
+    "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "compatibility_date": "2025-04-04",
   "main": "./workers/app.ts",
   "vars": {

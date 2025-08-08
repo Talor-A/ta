@@ -3,8 +3,11 @@ import { useFetcher } from "react-router";
 import type { Route } from "./+types/blog.edit";
 import { blogPosts } from "../../database/schema";
 import { eq, desc, isNull } from "drizzle-orm";
+import { requireAuth } from "../../lib/auth-utils";
 
 export async function loader({ context, request }: Route.LoaderArgs) {
+  // Require authentication
+  await requireAuth(request, context.db);
   const url = new URL(request.url);
   const editId = url.searchParams.get("edit");
   
@@ -36,6 +39,9 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 }
 
 export async function action({ context, request }: Route.ActionArgs) {
+  // Require authentication
+  await requireAuth(request, context.db);
+  
   const formData = await request.formData();
   const intent = formData.get("intent") as string;
   const title = formData.get("title") as string;
@@ -462,23 +468,24 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
         }}
       />
 
-      <div style={{ marginTop: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
-        {!isPublished && (
-          <button
-            onClick={handleSave}
-            disabled={isLoading}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: isLoading ? '#ccc' : '#007acc',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: isLoading ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {isLoading ? 'Saving...' : 'Save Draft'}
-          </button>
-        )}
+      <div style={{ marginTop: '20px', display: 'flex', gap: '10px', alignItems: 'center', minHeight: '44px' }}>
+        <button
+          onClick={handleSave}
+          disabled={isLoading}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: isLoading ? '#ccc' : '#007acc',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
+            opacity: isPublished ? 0 : 1,
+            pointerEvents: isPublished ? 'none' : 'auto',
+            visibility: isPublished ? 'hidden' : 'visible'
+          }}
+        >
+          {isLoading && fetcher.formData?.get('intent') === 'save' ? 'Saving...' : 'Save Draft'}
+        </button>
         <button
           onClick={handlePublish}
           disabled={isLoading}
@@ -491,7 +498,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
             cursor: isLoading ? 'not-allowed' : 'pointer'
           }}
         >
-          {isLoading ? 'Publishing...' : (isPublished ? 'Update' : 'Publish')}
+          {isLoading && (fetcher.formData?.get('intent') === 'publish' || fetcher.formData?.get('intent') === 'autosave') ? 'Publishing...' : (isPublished ? 'Update' : 'Publish')}
         </button>
         <a 
           href="/blog"

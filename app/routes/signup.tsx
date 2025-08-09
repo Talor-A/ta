@@ -11,7 +11,7 @@ export async function loader({ context }: Route.LoaderArgs) {
 export async function action({ request, context }: Route.ActionArgs) {
   // Check if any users exist first
   const hasUser = await context.db.query.user.findFirst();
-  
+
   if (hasUser) {
     return {
       success: false,
@@ -103,9 +103,7 @@ export default function Signup({ loaderData }: Route.ComponentProps) {
       <main style={{ maxWidth: "400px", margin: "80px auto", padding: "20px" }}>
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
           <h1 style={{ color: "#28a745" }}>✅ Account Created!</h1>
-          <p style={{ color: "#666" }}>
-            {actionData.message}
-          </p>
+          <p style={{ color: "#666" }}>{actionData.message}</p>
         </div>
         <div style={{ textAlign: "center" }}>
           <a
@@ -131,9 +129,7 @@ export default function Signup({ loaderData }: Route.ComponentProps) {
     <main style={{ maxWidth: "400px", margin: "80px auto", padding: "20px" }}>
       <div style={{ textAlign: "center", marginBottom: "40px" }}>
         <h1>Create Account</h1>
-        <p style={{ color: "#666" }}>
-          Sign up for your personal blog
-        </p>
+        <p style={{ color: "#666" }}>Sign up for your personal blog</p>
       </div>
 
       <Form method="post">

@@ -133,7 +133,11 @@ export async function action({ context, request }: Route.ActionArgs) {
         });
       }
 
-      return { success: true, message: "Post published", redirect: "/blog" };
+      return {
+        success: true,
+        message: "Post published",
+        redirect: "/blog",
+      };
     }
   } catch (error) {
     return { error: "Failed to save post" };
@@ -166,7 +170,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   const [title, setTitle] = useState(loaderData.post?.title || "");
   const [content, setContent] = useState(
     loaderData.post?.body ||
-      "# New Blog Post\n\nStart writing your content here...",
+      "# New Blog Post\n\nStart writing your content here..."
   );
   const [slug, setSlug] = useState(loaderData.post?.slug || "");
   const [postId, setPostId] = useState(loaderData.post?.id?.toString() || "");
@@ -204,7 +208,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
 
       fetcher.submit(formData, { method: "post" });
     },
-    [isPublished, postId, fetcher],
+    [isPublished, postId, fetcher]
   );
 
   // Handle autosave response
@@ -285,7 +289,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
         textarea.focus();
         textarea.setSelectionRange(
           start + linkMarkdown.length,
-          start + linkMarkdown.length,
+          start + linkMarkdown.length
         );
       }, 0);
     }
@@ -318,7 +322,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
     // Check if all selected lines are commented
     const selectedLines = lines.slice(startLine, endLine + 1);
     const allCommented = selectedLines.every(
-      (line) => line.trim().startsWith("<!-- ") && line.trim().endsWith(" -->"),
+      (line) => line.trim().startsWith("<!-- ") && line.trim().endsWith(" -->")
     );
 
     // Toggle comments
@@ -430,7 +434,11 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Post title..."
-          style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "10px" }}
+          style={{
+            fontSize: "18px",
+            fontWeight: "bold",
+            marginBottom: "10px",
+          }}
         />
         <input
           type="text"

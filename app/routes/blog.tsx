@@ -42,7 +42,13 @@ export default function Blog({ loaderData }: Route.ComponentProps) {
           <h1>Blog</h1>
           <p>Thoughts on AI, fullstack development, and engineering culture.</p>
         </div>
-        <nav style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <nav
+          style={{
+            display: "flex",
+            gap: "10px",
+            alignItems: "center",
+          }}
+        >
           {session ? (
             <>
               <span className="dimmer" style={{ fontSize: "14px" }}>
@@ -84,7 +90,9 @@ export default function Blog({ loaderData }: Route.ComponentProps) {
                 {post.publishedDate
                   ? new Date(post.publishedDate * 1000).toLocaleDateString(
                       "en-US",
-                      { timeZone: "UTC" },
+                      {
+                        timeZone: "UTC",
+                      }
                     )
                   : ""}
               </time>

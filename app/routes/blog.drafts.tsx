@@ -71,7 +71,11 @@ export default function BlogDrafts({ loaderData }: Route.ComponentProps) {
                 </div>
               </div>
               <div
-                style={{ display: "flex", gap: "10px", alignItems: "center" }}
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  alignItems: "center",
+                }}
               >
                 <a href={`/blog/edit?edit=${draft.id}`}>Edit</a>
               </div>

@@ -205,12 +205,12 @@ async function seedBlogPost() {
   console.log("");
   console.log("For local database:");
   console.log(
-    `bun wrangler d1 execute DB --local --command "INSERT INTO blogPosts (slug, title, body, publishedDate) VALUES ('complete-markdown-guide', 'Complete Markdown Guide - All Syntax Examples', '${markdownContent.replace(/'/g, "''")}', ${Math.floor(Date.now() / 1000)});"`,
+    `bun wrangler d1 execute DB --local --command "INSERT INTO blogPosts (slug, title, body, publishedDate) VALUES ('complete-markdown-guide', 'Complete Markdown Guide - All Syntax Examples', '${markdownContent.replace(/'/g, "''")}', ${Math.floor(Date.now() / 1000)});"`
   );
   console.log("");
   console.log("For production database:");
   console.log(
-    `bun wrangler d1 execute DB --remote --command "INSERT INTO blogPosts (slug, title, body, publishedDate) VALUES ('complete-markdown-guide', 'Complete Markdown Guide - All Syntax Examples', '${markdownContent.replace(/'/g, "''")}', ${Math.floor(Date.now() / 1000)});"`,
+    `bun wrangler d1 execute DB --remote --command "INSERT INTO blogPosts (slug, title, body, publishedDate) VALUES ('complete-markdown-guide', 'Complete Markdown Guide - All Syntax Examples', '${markdownContent.replace(/'/g, "''")}', ${Math.floor(Date.now() / 1000)});"`
   );
   console.log("");
   console.log("Or run this script directly with the database connection:");

@@ -8,7 +8,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     .select()
     .from(blogPosts)
     .where(
-      and(eq(blogPosts.slug, params.slug), isNotNull(blogPosts.publishedDate)),
+      and(eq(blogPosts.slug, params.slug), isNotNull(blogPosts.publishedDate))
     )
     .get();
 
@@ -49,7 +49,7 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
             {post.publishedDate
               ? new Date(post.publishedDate * 1000).toLocaleDateString(
                   "en-US",
-                  { timeZone: "UTC" },
+                  { timeZone: "UTC" }
                 )
               : ""}
           </time>

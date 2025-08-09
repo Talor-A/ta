@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useFetcher } from "react-router";
+import { useDebounce } from "../lib/useDebounce";
 import type { Route } from "./+types/blog.edit";
 import { blogPosts } from "../../database/schema";
 import { eq, desc, isNull } from "drizzle-orm";
@@ -153,7 +154,11 @@ export function meta({}: Route.MetaArgs) {
 export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   const fetcher = useFetcher();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedStateRef = useRef({
+    title: loaderData.post?.title || "",
+    content: loaderData.post?.body || "# New Blog Post\n\nStart writing your content here...",
+    slug: loaderData.post?.slug || "",
+  });
 
   const [title, setTitle] = useState(loaderData.post?.title || "");
   const [content, setContent] = useState(
@@ -165,9 +170,26 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isPublished] = useState(!!loaderData.post?.publishedDate);
 
+  // Debounce the form values for autosave
+  const debouncedTitle = useDebounce(title, 2000);
+  const debouncedContent = useDebounce(content, 2000);
+  const debouncedSlug = useDebounce(slug, 2000);
+
   // Autosave function for drafts only
-  const autosave = useCallback(() => {
+  const autosave = useCallback((title: string, content: string, slug: string) => {
     if (isPublished || !title.trim() || !content.trim()) return;
+
+    // Check if content has actually changed
+    const currentState = { title, content, slug };
+    const lastSaved = lastSavedStateRef.current;
+    
+    if (
+      currentState.title === lastSaved.title &&
+      currentState.content === lastSaved.content &&
+      currentState.slug === lastSaved.slug
+    ) {
+      return; // No changes to save
+    }
 
     const formData = new FormData();
     formData.append("intent", "autosave");
@@ -177,37 +199,24 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
     if (postId) formData.append("postId", postId);
 
     fetcher.submit(formData, { method: "post" });
-  }, [isPublished, title, content, slug, postId, fetcher]);
+  }, [isPublished, postId, fetcher]);
 
   // Handle autosave response
   useEffect(() => {
     if (fetcher.data?.success) {
       setLastSaved(new Date());
+      // Update last saved state ref
+      lastSavedStateRef.current = { title: debouncedTitle, content: debouncedContent, slug: debouncedSlug };
       if (fetcher.data.postId && !postId) {
         setPostId(fetcher.data.postId.toString());
       }
     }
-  }, [fetcher.data, postId]);
+  }, [fetcher.data, postId, debouncedTitle, debouncedContent, debouncedSlug]);
 
-  // Auto-save debounced
+  // Auto-save when debounced values change
   useEffect(() => {
-    if (!isPublished) {
-      if (autosaveTimeoutRef.current) {
-        clearTimeout(autosaveTimeoutRef.current);
-      }
-
-      autosaveTimeoutRef.current = setTimeout(() => {
-        autosave();
-      }, 2000); // Auto-save after 2 seconds of inactivity
-    }
-
-    return () => {
-      if (autosaveTimeoutRef.current) {
-        clearTimeout(autosaveTimeoutRef.current);
-        autosaveTimeoutRef.current = null;
-      }
-    };
-  }, [title, content, slug, autosave, isPublished]);
+    autosave(debouncedTitle, debouncedContent, debouncedSlug);
+  }, [debouncedTitle, debouncedContent, debouncedSlug, autosave]);
 
   const wrapSelection = (prefix: string, suffix: string = prefix) => {
     const textarea = textareaRef.current;

@@ -29,15 +29,15 @@ export default function Login() {
         email,
         password,
       });
-      
+
       console.log("Login result:", result);
-      
+
       if (result.error) {
         console.log("❌ Login failed:", result.error);
         setError(result.error.message || "Authentication failed");
         return;
       }
-      
+
       if (result.data) {
         console.log("✅ Login successful");
         window.location.href = "/blog";

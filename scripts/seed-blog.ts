@@ -1,5 +1,5 @@
-import { drizzle } from 'drizzle-orm/d1';
-import { blogPosts } from '../database/schema';
+import { drizzle } from "drizzle-orm/d1";
+import { blogPosts } from "../database/schema";
 
 const markdownContent = `# Complete Markdown Guide
 
@@ -201,16 +201,20 @@ Remember to test your markdown in your specific renderer, as some features may v
 
 async function seedBlogPost() {
   // This script is designed to work with Cloudflare D1 via wrangler
-  console.log('To seed the blog post, run the following commands:');
-  console.log('');
-  console.log('For local database:');
-  console.log(`bun wrangler d1 execute DB --local --command "INSERT INTO blogPosts (slug, title, body, publishedDate) VALUES ('complete-markdown-guide', 'Complete Markdown Guide - All Syntax Examples', '${markdownContent.replace(/'/g, "''")}', ${Math.floor(Date.now() / 1000)});"`);
-  console.log('');
-  console.log('For production database:');
-  console.log(`bun wrangler d1 execute DB --remote --command "INSERT INTO blogPosts (slug, title, body, publishedDate) VALUES ('complete-markdown-guide', 'Complete Markdown Guide - All Syntax Examples', '${markdownContent.replace(/'/g, "''")}', ${Math.floor(Date.now() / 1000)});"`);
-  console.log('');
-  console.log('Or run this script directly with the database connection:');
-  
+  console.log("To seed the blog post, run the following commands:");
+  console.log("");
+  console.log("For local database:");
+  console.log(
+    `bun wrangler d1 execute DB --local --command "INSERT INTO blogPosts (slug, title, body, publishedDate) VALUES ('complete-markdown-guide', 'Complete Markdown Guide - All Syntax Examples', '${markdownContent.replace(/'/g, "''")}', ${Math.floor(Date.now() / 1000)});"`,
+  );
+  console.log("");
+  console.log("For production database:");
+  console.log(
+    `bun wrangler d1 execute DB --remote --command "INSERT INTO blogPosts (slug, title, body, publishedDate) VALUES ('complete-markdown-guide', 'Complete Markdown Guide - All Syntax Examples', '${markdownContent.replace(/'/g, "''")}', ${Math.floor(Date.now() / 1000)});"`,
+  );
+  console.log("");
+  console.log("Or run this script directly with the database connection:");
+
   // If we have access to the database context, we could insert directly
   // But for this setup, we'll output the commands to run manually
 }

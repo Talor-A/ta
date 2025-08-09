@@ -8,7 +8,6 @@ This is a React Router v7 application deployed on Cloudflare Workers with the fo
 
 - **Runtime**: Cloudflare Workers with Server-Side Rendering (SSR)
 - **Frontend**: React 19 with React Router v7 for routing and data loading
-- **Styling**: TailwindCSS v4 with Vite plugin integration
 - **Database**: Cloudflare D1 (SQLite) with Drizzle ORM
 - **Build Tool**: Vite with TypeScript
 - **Deployment**: Wrangler CLI to Cloudflare Workers
@@ -20,7 +19,7 @@ This is a React Router v7 application deployed on Cloudflare Workers with the fo
 ### Development
 
 ```bash
-bun run dev              # Start development server with HMR at localhost:5173
+bun dev              # Start development server with HMR at localhost:5173
 bun run db:migrate       # Run database migrations locally
 bun run typecheck        # Run TypeScript type checking with cf-typegen and react-router typegen
 ```
@@ -105,7 +104,7 @@ export async function loader({ context }: Route.LoaderArgs) {
 ### Configuration Files
 
 - **Wrangler**: `wrangler.jsonc` - Cloudflare Workers configuration with D1 binding
-- **Vite**: `vite.config.ts` - Build configuration with Cloudflare, TailwindCSS, and React Router plugins
+- **Vite**: `vite.config.ts` - Build configuration with Cloudflare and React Router plugins
 - **TypeScript**: Multiple tsconfig files for different environments (main, node, cloudflare)
 - **React Router**: `react-router.config.ts` - SSR and prerendering configuration
 

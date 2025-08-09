@@ -10,7 +10,7 @@ export async function loader({ context }: Route.LoaderArgs) {
 
 export async function action({ request, context }: Route.ActionArgs) {
   console.log("📝 Signup action started");
-  
+
   // Check if any users exist first
   console.log("🔍 Checking if users exist in database...");
   const hasUser = await context.db.query.user.findFirst();
@@ -29,7 +29,11 @@ export async function action({ request, context }: Route.ActionArgs) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const name = formData.get("name") as string;
-  console.log("📋 Form data parsed:", { email, name, passwordLength: password?.length });
+  console.log("📋 Form data parsed:", {
+    email,
+    name,
+    passwordLength: password?.length,
+  });
 
   if (!email || !password || !name) {
     console.log("❌ Missing required fields");

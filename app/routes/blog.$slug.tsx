@@ -2,6 +2,7 @@ import type { Route } from "./+types/blog.$slug";
 import { blogPosts } from "../../database/schema";
 import { eq, isNotNull, and } from "drizzle-orm";
 import Markdown from "react-markdown";
+import styles from "./blog.$slug.module.css";
 
 export async function loader({ context, params }: Route.LoaderArgs) {
   const post = await context.db
@@ -42,9 +43,20 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
 
   return (
     <main>
+      <div className={styles.backLink}>
+        <a aria-label="Back to blog" href="/blog" className="link-plain">
+          ←
+        </a>
+      </div>
       <article>
         <header className="mb-2">
-          <h1>{post.title}</h1>
+          <h1 role="none">
+            <a href="/blog" className={`${styles.inlineBackLink} link-plain`}>
+              ← Back to Blog
+              <span className="dimmer"> | </span>
+            </a>
+            <span role="h1">{post.title}</span>
+          </h1>
           <time className="dimmer" style={{ fontSize: "0.9em" }}>
             {post.publishedDate
               ? new Date(post.publishedDate * 1000).toLocaleDateString(
@@ -55,27 +67,20 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
           </time>
         </header>
 
-        <div
-          style={{
-            lineHeight: "1.6",
-            maxWidth: "none",
-          }}
-        >
+        <div>
           <Markdown>{preprocessMarkdown(post.body)}</Markdown>
         </div>
       </article>
 
-      <nav
-        className="mt-2"
+      {/* <nav
         style={{
-          paddingTop: "20px",
-          borderTop: "1px solid var(--dimmer-color)",
+          paddingTop: "1rem",
         }}
       >
-        <a href="/blog" className="dimmer">
+        <a href="/blog" className="link-plain">
           ← Back to Blog
         </a>
-      </nav>
+      </nav> */}
     </main>
   );
 }

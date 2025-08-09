@@ -1,0 +1,23 @@
+.backLink {
+    @media (max-width: 768px) {
+        display: none;
+    }
+    @media (min-width: 769px) {
+        display: block;
+        position: absolute;
+        top:0px;
+        margin-top: 2.83em; 
+        right: 50%;
+        margin-right: 360px !important;
+    }
+}
+
+.inlineBackLink {
+    @media (max-width: 768px) {
+        display: inline;
+        font-weight: initial;
+    }
+    @media (min-width: 769px) {
+        display: none;
+    }
+}

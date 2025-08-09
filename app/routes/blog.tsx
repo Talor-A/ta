@@ -38,10 +38,15 @@ export default function Blog({ loaderData }: Route.ComponentProps) {
   return (
     <main>
       <header>
-        <div>
-          <h1>Blog</h1>
-          <p>Thoughts on AI, fullstack development, and engineering culture.</p>
-        </div>
+        <h1>
+          <a className={`${styles.myname} link-plain`} href="/">
+            Talor Anderson
+          </a>{" "}
+          <span className={`dimmer ${styles.myname}`}>|</span> Blog
+        </h1>
+
+        <p>Thoughts on AI, fullstack development, and engineering culture.</p>
+
         <nav
           style={{
             display: "flex",
@@ -56,13 +61,19 @@ export default function Blog({ loaderData }: Route.ComponentProps) {
               </span>
               <ul className={styles.toolbar}>
                 <li>
-                  <a href="/blog/drafts">Drafts</a>
+                  <a className="link-plain" href="/blog/drafts">
+                    Drafts
+                  </a>
                 </li>
                 <li>
-                  <a href="/blog/edit">New Post</a>
+                  <a className="link-plain" href="/blog/edit">
+                    New Post
+                  </a>
                 </li>
                 <li>
-                  <a href="/logout">Sign Out</a>
+                  <a className="link-plain" href="/logout">
+                    Sign Out
+                  </a>
                 </li>
               </ul>
             </>

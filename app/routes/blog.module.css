@@ -1,0 +1,7 @@
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}

@@ -54,113 +54,47 @@ export default function Login() {
   };
 
   return (
-    <main style={{ maxWidth: "400px", margin: "80px auto", padding: "20px" }}>
-      <div style={{ textAlign: "center", marginBottom: "40px" }}>
+    <main className="page">
+      <div className="center mb-2">
         <h1>Sign In</h1>
-        <p style={{ color: "#666" }}>Sign in to manage your blog</p>
+        <p className="dimmer">Sign in to manage your blog</p>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "20px" }}>
-          <label
-            htmlFor="email"
-            style={{
-              display: "block",
-              marginBottom: "8px",
-              fontWeight: "bold",
-            }}
-          >
-            Email
-          </label>
+        <div className="mb-1">
+          <label htmlFor="email">Email</label>
           <input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            style={{
-              width: "100%",
-              padding: "12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
           />
         </div>
 
-        <div style={{ marginBottom: "20px" }}>
-          <label
-            htmlFor="password"
-            style={{
-              display: "block",
-              marginBottom: "8px",
-              fontWeight: "bold",
-            }}
-          >
-            Password
-          </label>
+        <div className="mb-1">
+          <label htmlFor="password">Password</label>
           <input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            style={{
-              width: "100%",
-              padding: "12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
           />
         </div>
 
-        {error && (
-          <div
-            style={{
-              color: "#dc3545",
-              backgroundColor: "#f8d7da",
-              border: "1px solid #f5c6cb",
-              padding: "12px",
-              borderRadius: "4px",
-              marginBottom: "20px",
-              fontSize: "14px",
-            }}
-          >
-            {error}
-          </div>
-        )}
+        {error && <div className="error mb-1">{error}</div>}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          style={{
-            width: "100%",
-            padding: "12px",
-            backgroundColor: isLoading ? "#ccc" : "#007acc",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            fontSize: "16px",
-            cursor: isLoading ? "not-allowed" : "pointer",
-            marginBottom: "30px",
-          }}
-        >
+        <button type="submit" disabled={isLoading} className="mb-2">
           {isLoading ? "Signing In..." : "Sign In"}
         </button>
       </form>
 
-      <div style={{ textAlign: "center" }}>
+      <div className="center">
         <p>
-          Need an account?{" "}
-          <a href="/signup" style={{ color: "#007acc" }}>
-            Sign up
-          </a>
+          Need an account? <a href="/signup">Sign up</a>
         </p>
-        <a
-          href="/"
-          style={{ color: "#666", textDecoration: "none", fontSize: "14px" }}
-        >
+        <a href="/" className="dimmer">
           ← Back to Home
         </a>
       </div>

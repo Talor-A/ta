@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useFetcher } from "react-router";
 import { useDebounce } from "../lib/useDebounce";
+import styles from "./blog.edit.module.css";
 import type { Route } from "./+types/blog.edit";
 import { blogPosts } from "../../database/schema";
 import { eq, desc, isNull } from "drizzle-orm";
@@ -401,23 +402,12 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   const isLoading = fetcher.state === "submitting";
 
   return (
-    <main style={{ maxWidth: "800px", margin: "0 auto", padding: "20px" }}>
-      <div style={{ marginBottom: "20px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "10px",
-          }}
-        >
+    <main className="editor">
+      <div className="mb-1">
+        <div className={styles.header}>
           <h1>Blog Editor</h1>
-          <div style={{ fontSize: "0.8em", color: "#666" }}>
-            {isPublished && (
-              <span style={{ color: "#28a745", fontWeight: "bold" }}>
-                Published
-              </span>
-            )}
+          <div className={`${styles.status} dimmer`}>
+            {isPublished && <span className={styles.published}>Published</span>}
             {!isPublished && lastSaved && (
               <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
             )}
@@ -427,80 +417,39 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
             {isLoading && <span>Saving...</span>}
           </div>
         </div>
-        <p style={{ color: "#666", fontSize: "0.9em" }}>
+        <p className={`dimmer ${styles.help}`}>
           Use <kbd>Cmd+B</kbd> for bold, <kbd>Cmd+I</kbd> for italic,{" "}
           <kbd>Cmd+/</kbd> for comments. Select text and <kbd>Cmd+V</kbd> a URL
           to create links.
         </p>
       </div>
 
-      <div style={{ marginBottom: "20px" }}>
+      <div className="mb-1">
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Post title..."
-          style={{
-            width: "100%",
-            padding: "12px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-            fontSize: "18px",
-            fontWeight: "bold",
-            marginBottom: "10px",
-          }}
+          style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "10px" }}
         />
         <input
           type="text"
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
           placeholder="url-slug (auto-generated from title if empty)"
-          style={{
-            width: "100%",
-            padding: "8px 12px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-            fontSize: "14px",
-            color: "#666",
-          }}
+          className="dimmer"
+          style={{ fontSize: "14px" }}
         />
       </div>
 
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-        <button
-          onClick={() => wrapSelection("**")}
-          style={{
-            padding: "8px 12px",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            background: "#f5f5f5",
-            cursor: "pointer",
-          }}
-        >
+      <div className={styles.toolbar}>
+        <button onClick={() => wrapSelection("**")} className={styles.toolBtn}>
           <strong>B</strong>
         </button>
-        <button
-          onClick={() => wrapSelection("*")}
-          style={{
-            padding: "8px 12px",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            background: "#f5f5f5",
-            cursor: "pointer",
-          }}
-        >
+        <button onClick={() => wrapSelection("*")} className={styles.toolBtn}>
           <em>I</em>
         </button>
-        <button
-          onClick={toggleBlockComment}
-          style={{
-            padding: "8px 12px",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            background: "#f5f5f5",
-            cursor: "pointer",
-          }}
-        >
+        <button onClick={toggleBlockComment} className={styles.toolBtn}>
           Comment
         </button>
       </div>
@@ -510,59 +459,21 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="Write your blog post in Markdown..."
-        style={{
-          width: "100%",
-          height: "400px",
-          padding: "15px",
-          border: "1px solid #ddd",
-          borderRadius: "4px",
-          fontFamily: 'Monaco, Consolas, "Lucida Console", monospace',
-          fontSize: "14px",
-          lineHeight: "1.5",
-          resize: "vertical",
-        }}
+        className={styles.editor}
+        style={{ padding: "15px" }}
       />
 
-      <div
-        style={{
-          marginTop: "20px",
-          display: "flex",
-          gap: "10px",
-          alignItems: "center",
-          minHeight: "44px",
-        }}
-      >
+      <div className={styles.actions}>
         <button
           onClick={handleSave}
           disabled={isLoading}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: isLoading ? "#ccc" : "#007acc",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: isLoading ? "not-allowed" : "pointer",
-            opacity: isPublished ? 0 : 1,
-            pointerEvents: isPublished ? "none" : "auto",
-            visibility: isPublished ? "hidden" : "visible",
-          }}
+          className={isPublished ? styles.hidden : ""}
         >
           {isLoading && fetcher.formData?.get("intent") === "save"
             ? "Saving..."
             : "Save Draft"}
         </button>
-        <button
-          onClick={handlePublish}
-          disabled={isLoading}
-          style={{
-            padding: "10px 20px",
-            backgroundColor: isLoading ? "#ccc" : "#28a745",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: isLoading ? "not-allowed" : "pointer",
-          }}
-        >
+        <button onClick={handlePublish} disabled={isLoading}>
           {isLoading &&
           (fetcher.formData?.get("intent") === "publish" ||
             fetcher.formData?.get("intent") === "autosave")
@@ -571,22 +482,12 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
               ? "Update"
               : "Publish"}
         </button>
-        <a
-          href="/blog"
-          style={{
-            padding: "10px 20px",
-            backgroundColor: "#6c757d",
-            color: "white",
-            textDecoration: "none",
-            borderRadius: "4px",
-            display: "inline-block",
-          }}
-        >
+        <a href="/blog" className={styles.cancel}>
           Cancel
         </a>
 
         {fetcher.data?.error && (
-          <span style={{ color: "#dc3545", marginLeft: "10px" }}>
+          <span className="error" style={{ marginLeft: "10px" }}>
             {fetcher.data.error}
           </span>
         )}

@@ -32,7 +32,7 @@ export function meta({}: Route.MetaArgs) {
 export default function BlogDrafts({ loaderData }: Route.ComponentProps) {
   return (
     <main>
-      <div
+      <header
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -44,20 +44,8 @@ export default function BlogDrafts({ loaderData }: Route.ComponentProps) {
           <h1>Draft Posts</h1>
           <p>Unpublished posts that are automatically saved as you write</p>
         </div>
-        <a
-          href="/blog/edit"
-          style={{
-            padding: "10px 20px",
-            backgroundColor: "#007acc",
-            color: "white",
-            textDecoration: "none",
-            borderRadius: "4px",
-            fontSize: "14px",
-          }}
-        >
-          New Draft
-        </a>
-      </div>
+        <a href="/blog/edit">New Draft</a>
+      </header>
 
       {loaderData.drafts.length > 0 ? (
         <div>
@@ -67,7 +55,7 @@ export default function BlogDrafts({ loaderData }: Route.ComponentProps) {
               style={{
                 marginBottom: "30px",
                 paddingBottom: "20px",
-                borderBottom: "1px solid #eee",
+                borderBottom: "1px solid var(--dimmer-color)",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
@@ -77,7 +65,7 @@ export default function BlogDrafts({ loaderData }: Route.ComponentProps) {
                 <h2 style={{ margin: "0 0 8px 0" }}>
                   {draft.title || "Untitled Draft"}
                 </h2>
-                <div style={{ color: "#666", fontSize: "0.9em" }}>
+                <div className="dimmer" style={{ fontSize: "0.9em" }}>
                   <span>Draft • Not published</span>
                   {draft.slug && <span> • /{draft.slug}</span>}
                 </div>
@@ -85,64 +73,41 @@ export default function BlogDrafts({ loaderData }: Route.ComponentProps) {
               <div
                 style={{ display: "flex", gap: "10px", alignItems: "center" }}
               >
-                <a
-                  href={`/blog/edit?edit=${draft.id}`}
-                  style={{
-                    padding: "8px 16px",
-                    backgroundColor: "#f8f9fa",
-                    color: "#495057",
-                    textDecoration: "none",
-                    borderRadius: "4px",
-                    border: "1px solid #dee2e6",
-                    fontSize: "14px",
-                  }}
-                >
-                  Edit
-                </a>
+                <a href={`/blog/edit?edit=${draft.id}`}>Edit</a>
               </div>
             </article>
           ))}
         </div>
       ) : (
         <div
+          className="center"
           style={{
-            textAlign: "center",
             padding: "60px 20px",
-            color: "#666",
-            border: "2px dashed #ddd",
+            border: "2px dashed var(--dimmer-color)",
             borderRadius: "8px",
           }}
         >
-          <h3 style={{ margin: "0 0 10px 0", color: "#999" }}>No drafts yet</h3>
+          <h3 className="dimmer" style={{ margin: "0 0 10px 0" }}>
+            No drafts yet
+          </h3>
           <p style={{ margin: "0 0 20px 0" }}>
             Start writing to automatically create drafts
           </p>
-          <a
-            href="/blog/edit"
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#007acc",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: "4px",
-            }}
-          >
-            Create Your First Draft
-          </a>
+          <a href="/blog/edit">Create Your First Draft</a>
         </div>
       )}
 
-      <div
+      <nav
+        className="mt-2"
         style={{
-          marginTop: "40px",
           paddingTop: "20px",
-          borderTop: "1px solid #eee",
+          borderTop: "1px solid var(--dimmer-color)",
         }}
       >
-        <a href="/blog" style={{ color: "#666" }}>
+        <a href="/blog" className="dimmer">
           ← Back to Blog
         </a>
-      </div>
+      </nav>
     </main>
   );
 }

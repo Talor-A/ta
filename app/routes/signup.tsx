@@ -85,26 +85,15 @@ export default function Signup({ loaderData }: Route.ComponentProps) {
 
   if (loaderData.hasExistingUser) {
     return (
-      <main style={{ maxWidth: "400px", margin: "80px auto", padding: "20px" }}>
-        <div style={{ textAlign: "center", marginBottom: "40px" }}>
+      <main className="page">
+        <div className="center mb-2">
           <h1>Registration Disabled</h1>
-          <p style={{ color: "#666" }}>
+          <p className="dimmer">
             Registration is not available. A user already exists in the system.
           </p>
         </div>
-        <div style={{ textAlign: "center" }}>
-          <a
-            href="/login"
-            style={{
-              display: "inline-block",
-              padding: "12px 24px",
-              backgroundColor: "#007acc",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: "4px",
-              fontWeight: "bold",
-            }}
-          >
+        <div className="center">
+          <a href="/login" className="btn">
             Sign In Instead
           </a>
         </div>
@@ -114,24 +103,13 @@ export default function Signup({ loaderData }: Route.ComponentProps) {
 
   if (actionData?.success) {
     return (
-      <main style={{ maxWidth: "400px", margin: "80px auto", padding: "20px" }}>
-        <div style={{ textAlign: "center", marginBottom: "40px" }}>
-          <h1 style={{ color: "#28a745" }}>✅ Account Created!</h1>
-          <p style={{ color: "#666" }}>{actionData.message}</p>
+      <main className="page">
+        <div className="center mb-2">
+          <h1>✅ Account Created!</h1>
+          <p className="dimmer">{actionData.message}</p>
         </div>
-        <div style={{ textAlign: "center" }}>
-          <a
-            href="/login"
-            style={{
-              display: "inline-block",
-              padding: "12px 24px",
-              backgroundColor: "#007acc",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: "4px",
-              fontWeight: "bold",
-            }}
-          >
+        <div className="center">
+          <a href="/login" className="btn">
             Sign In Now
           </a>
         </div>
@@ -140,130 +118,38 @@ export default function Signup({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <main style={{ maxWidth: "400px", margin: "80px auto", padding: "20px" }}>
-      <div style={{ textAlign: "center", marginBottom: "40px" }}>
+    <main className="page">
+      <div className="center mb-2">
         <h1>Create Account</h1>
-        <p style={{ color: "#666" }}>Sign up for your personal blog</p>
+        <p className="dimmer">Sign up for your personal blog</p>
       </div>
 
       <Form method="post">
-        <div style={{ marginBottom: "20px" }}>
-          <label
-            htmlFor="name"
-            style={{
-              display: "block",
-              marginBottom: "5px",
-              fontWeight: "bold",
-            }}
-          >
-            Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            required
-            style={{
-              width: "100%",
-              padding: "12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
-          />
+        <div className="mb-1">
+          <label htmlFor="name">Name</label>
+          <input type="text" id="name" name="name" required />
         </div>
 
-        <div style={{ marginBottom: "20px" }}>
-          <label
-            htmlFor="email"
-            style={{
-              display: "block",
-              marginBottom: "5px",
-              fontWeight: "bold",
-            }}
-          >
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            required
-            style={{
-              width: "100%",
-              padding: "12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
-          />
+        <div className="mb-1">
+          <label htmlFor="email">Email</label>
+          <input type="email" id="email" name="email" required />
         </div>
 
-        <div style={{ marginBottom: "30px" }}>
-          <label
-            htmlFor="password"
-            style={{
-              display: "block",
-              marginBottom: "5px",
-              fontWeight: "bold",
-            }}
-          >
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            required
-            style={{
-              width: "100%",
-              padding: "12px",
-              border: "1px solid #ddd",
-              borderRadius: "4px",
-              fontSize: "16px",
-            }}
-          />
+        <div className="mb-2">
+          <label htmlFor="password">Password</label>
+          <input type="password" id="password" name="password" required />
         </div>
 
         {actionData?.error && (
-          <div
-            style={{
-              padding: "10px",
-              marginBottom: "20px",
-              backgroundColor: "#f8d7da",
-              border: "1px solid #f5c6cb",
-              borderRadius: "4px",
-              color: "#721c24",
-            }}
-          >
-            {actionData.error}
-          </div>
+          <div className="error mb-1">{actionData.error}</div>
         )}
 
-        <button
-          type="submit"
-          style={{
-            width: "100%",
-            padding: "12px",
-            backgroundColor: "#28a745",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            fontSize: "16px",
-            fontWeight: "bold",
-            cursor: "pointer",
-          }}
-        >
-          Create Account
-        </button>
+        <button type="submit">Create Account</button>
       </Form>
 
-      <div style={{ textAlign: "center", marginTop: "20px" }}>
+      <div className="center mt-1">
         <p>
-          Already have an account?{" "}
-          <a href="/login" style={{ color: "#007acc" }}>
-            Sign in
-          </a>
+          Already have an account? <a href="/login">Sign in</a>
         </p>
       </div>
     </main>

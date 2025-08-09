@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Route } from "./+types/logout";
 import { authClient } from "../lib/auth-client";
+import styles from "./logout.module.css";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -57,110 +58,42 @@ export default function Logout() {
   };
 
   return (
-    <main style={{ maxWidth: "400px", margin: "80px auto", padding: "20px" }}>
-      <div style={{ textAlign: "center", marginBottom: "40px" }}>
+    <main className="page">
+      <div className="center mb-2">
         <h1>Sign Out</h1>
       </div>
 
-      <div
-        style={{
-          padding: "30px",
-          border: "1px solid #ddd",
-          borderRadius: "8px",
-          backgroundColor: "#f8f9fa",
-          textAlign: "center",
-        }}
-      >
+      <div className={styles.card}>
         {isLoggingOut ? (
           <div>
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                border: "4px solid #f3f3f3",
-                borderTop: "4px solid #007acc",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-                margin: "0 auto 20px",
-              }}
-            />
+            <div className={styles.spinner} />
             <p>Signing you out...</p>
-            <style>{`
-              @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-              }
-            `}</style>
           </div>
         ) : isLoggedOut ? (
           <div>
-            <div
-              style={{
-                fontSize: "48px",
-                color: "#28a745",
-                marginBottom: "20px",
-              }}
-            >
-              ✅
-            </div>
-            <h2 style={{ color: "#28a745", marginTop: 0 }}>
-              Signed Out Successfully
-            </h2>
-            <p style={{ color: "#666", marginBottom: "20px" }}>
+            <div className={styles.icon}>✅</div>
+            <h2>Signed Out Successfully</h2>
+            <p className="dimmer mb-1">
               You have been signed out of your account.
             </p>
-            <p style={{ fontSize: "14px", color: "#999" }}>
+            <p className="dimmer" style={{ fontSize: "14px" }}>
               Redirecting to home page...
             </p>
           </div>
         ) : error ? (
           <div>
-            <div
-              style={{
-                fontSize: "48px",
-                color: "#dc3545",
-                marginBottom: "20px",
-              }}
-            >
-              ❌
-            </div>
-            <h2 style={{ color: "#dc3545", marginTop: 0 }}>Logout Failed</h2>
-            <div
-              style={{
-                color: "#dc3545",
-                backgroundColor: "#f8d7da",
-                border: "1px solid #f5c6cb",
-                padding: "12px",
-                borderRadius: "4px",
-                marginBottom: "20px",
-                fontSize: "14px",
-              }}
-            >
-              {error}
-            </div>
-            <button
-              onClick={handleManualLogout}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#dc3545",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                marginBottom: "10px",
-              }}
-            >
+            <div className={styles.icon}>❌</div>
+            <h2>Logout Failed</h2>
+            <div className="error mb-1">{error}</div>
+            <button onClick={handleManualLogout} className={styles.danger}>
               Try Again
             </button>
           </div>
         ) : null}
       </div>
 
-      <div style={{ textAlign: "center", marginTop: "30px" }}>
-        <a
-          href="/"
-          style={{ color: "#666", textDecoration: "none", fontSize: "14px" }}
-        >
+      <div className="center mt-2">
+        <a href="/" className="dimmer" style={{ fontSize: "14px" }}>
           ← Back to Home
         </a>
       </div>

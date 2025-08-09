@@ -43,7 +43,7 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
   return (
     <main>
       <article>
-        <header style={{ marginBottom: "30px" }}>
+        <header className="mb-2">
           <h1>{post.title}</h1>
           <time className="dimmer" style={{ fontSize: "0.9em" }}>
             {post.publishedDate
@@ -66,13 +66,13 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
       </article>
 
       <nav
+        className="mt-2"
         style={{
-          marginTop: "40px",
           paddingTop: "20px",
-          borderTop: "1px solid #eee",
+          borderTop: "1px solid var(--dimmer-color)",
         }}
       >
-        <a href="/blog" style={{ color: "#666" }}>
+        <a href="/blog" className="dimmer">
           ← Back to Blog
         </a>
       </nav>

@@ -120,3 +120,108 @@ p {
 .dimmer {
   color: var(--dimmer-color);
 }
+
+/* Form styles */
+form {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+form button {
+  width: 100%;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--dimmer-color);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: inherit;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--link-color);
+}
+
+button {
+  display: inline-block;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  background: none;
+  color: var(--text-color);
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.error {
+  color: var(--text-color);
+  background-color: var(--code-background-color);
+  border: 1px solid var(--dimmer-color);
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+/* Layout helpers */
+.center {
+  text-align: center;
+}
+
+.mb-1 {
+  margin-bottom: 1rem;
+}
+.mb-2 {
+  margin-bottom: 2rem;
+}
+.mt-1 {
+  margin-top: 1rem;
+}
+.mt-2 {
+  margin-top: 2rem;
+}
+
+/* Page container */
+.page {
+  max-width: 400px;
+  margin: 80px auto;
+  padding: 20px;
+}
+
+/* Editor page */
+.editor {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.link-plain {
+  color: var(--text-color);
+  text-decoration: none;
+}
+.link-plain:hover {
+  text-decoration: underline;
+}
+.link-plain:visited {
+  color: var(--text-color);
+}

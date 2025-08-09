@@ -2,6 +2,7 @@ import type { Route } from "./+types/blog";
 import { blogPosts } from "../../database/schema";
 import { isNotNull } from "drizzle-orm";
 import { getOptionalAuth } from "../lib/auth-utils";
+import styles from "./blog.module.css";
 
 export async function loader({ context, request }: Route.LoaderArgs) {
   // Check if user is authenticated (optional)
@@ -36,25 +37,18 @@ export default function Blog({ loaderData }: Route.ComponentProps) {
 
   return (
     <main>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "20px",
-        }}
-      >
+      <header>
         <div>
           <h1>Blog</h1>
           <p>Thoughts on AI, fullstack development, and engineering culture.</p>
         </div>
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <nav style={{ display: "flex", gap: "10px", alignItems: "center" }}>
           {session ? (
             <>
-              <span style={{ fontSize: "14px", color: "#666" }}>
+              <span className="dimmer" style={{ fontSize: "14px" }}>
                 Welcome, {session.user.name}
               </span>
-              <ul>
+              <ul className={styles.toolbar}>
                 <li>
                   <a href="/blog/drafts">Drafts</a>
                 </li>
@@ -67,8 +61,8 @@ export default function Blog({ loaderData }: Route.ComponentProps) {
               </ul>
             </>
           ) : null}
-        </div>
-      </div>
+        </nav>
+      </header>
 
       {posts.length > 0 ? (
         <div>
@@ -78,14 +72,11 @@ export default function Blog({ loaderData }: Route.ComponentProps) {
               style={{
                 marginBottom: "30px",
                 paddingBottom: "20px",
-                borderBottom: "1px solid #eee",
+                borderBottom: "1px solid var(--dimmer-color)",
               }}
             >
               <h2>
-                <a
-                  href={`/blog/${post.slug}`}
-                  style={{ textDecoration: "none", color: "inherit" }}
-                >
+                <a href={`/blog/${post.slug}`} className="link-plain">
                   {post.title}
                 </a>
               </h2>

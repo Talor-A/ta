@@ -9,22 +9,30 @@ export async function loader({ context }: Route.LoaderArgs) {
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
+  console.log("📝 Signup action started");
+  
   // Check if any users exist first
+  console.log("🔍 Checking if users exist in database...");
   const hasUser = await context.db.query.user.findFirst();
+  console.log("✅ Database query completed. Has existing user:", !!hasUser);
 
   if (hasUser) {
+    console.log("❌ Registration blocked - user already exists");
     return {
       success: false,
       error: "Registration is disabled. A user already exists in the system.",
     };
   }
 
+  console.log("📋 Parsing form data...");
   const formData = await request.formData();
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const name = formData.get("name") as string;
+  console.log("📋 Form data parsed:", { email, name, passwordLength: password?.length });
 
   if (!email || !password || !name) {
+    console.log("❌ Missing required fields");
     return {
       success: false,
       error: "All fields are required.",
@@ -32,9 +40,11 @@ export async function action({ request, context }: Route.ActionArgs) {
   }
 
   try {
+    console.log("🔐 Calling Better Auth signup...");
     const result = await auth.api.signUpEmail({
       body: { email, password, name },
     });
+    console.log("✅ Better Auth signup completed:", !!result);
 
     if (result) {
       return {

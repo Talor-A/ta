@@ -1,6 +1,7 @@
 import type { Route } from "./+types/blog.$slug";
 import { blogPosts } from "../../database/schema";
 import { eq, isNotNull, and } from "drizzle-orm";
+import Markdown from "react-markdown";
 
 export async function loader({ context, params }: Route.LoaderArgs) {
   const post = await context.db
@@ -28,57 +29,12 @@ export function meta({ loaderData }: Route.MetaArgs) {
   ];
 }
 
-function parseMarkdown(markdown: string): string {
-  // First, unescape the content
-  let content = markdown
+function preprocessMarkdown(markdown: string): string {
+  // Unescape any escaped content that might be stored in the database
+  return markdown
     .replace(/\\n/g, "\n")
     .replace(/\\!/g, "!")
     .replace(/\\\*/g, "*");
-
-  // Split into paragraphs and process each
-  const paragraphs = content.split(/\n\s*\n/);
-
-  return paragraphs
-    .map((paragraph) => {
-      const lines = paragraph.split("\n");
-      let html = "";
-      let inList = false;
-
-      for (let line of lines) {
-        line = line.trim();
-        if (!line) continue;
-
-        if (line.startsWith("# ")) {
-          html += `<h1>${line.slice(2)}</h1>`;
-        } else if (line.startsWith("## ")) {
-          html += `<h2>${line.slice(3)}</h2>`;
-        } else if (line.startsWith("### ")) {
-          html += `<h3>${line.slice(4)}</h3>`;
-        } else if (line.startsWith("- ")) {
-          if (!inList) {
-            html += "<ul>";
-            inList = true;
-          }
-          html += `<li>${line
-            .slice(2)
-            .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-            .replace(/\*(.+?)\*/g, "<em>$1</em>")}</li>`;
-        } else {
-          if (inList) {
-            html += "</ul>";
-            inList = false;
-          }
-          html += `<p>${line.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>")}</p>`;
-        }
-      }
-
-      if (inList) {
-        html += "</ul>";
-      }
-
-      return html;
-    })
-    .join("");
 }
 
 export default function BlogPost({ loaderData }: Route.ComponentProps) {
@@ -97,11 +53,13 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
         </header>
 
         <div
-          style={{ lineHeight: "1.6" }}
-          dangerouslySetInnerHTML={{
-            __html: parseMarkdown(post.body),
+          style={{
+            lineHeight: "1.6",
+            maxWidth: "none",
           }}
-        />
+        >
+          <Markdown>{preprocessMarkdown(post.body)}</Markdown>
+        </div>
       </article>
 
       <nav

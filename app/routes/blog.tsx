@@ -53,62 +53,19 @@ export default function Blog({ loaderData }: Route.ComponentProps) {
               <span style={{ fontSize: "14px", color: "#666" }}>
                 Welcome, {session.user.name}
               </span>
-              <a
-                href="/blog/drafts"
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: "#f8f9fa",
-                  color: "#495057",
-                  textDecoration: "none",
-                  borderRadius: "4px",
-                  border: "1px solid #dee2e6",
-                  fontSize: "14px",
-                }}
-              >
-                Drafts
-              </a>
-              <a
-                href="/blog/edit"
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: "#007acc",
-                  color: "white",
-                  textDecoration: "none",
-                  borderRadius: "4px",
-                  fontSize: "14px",
-                }}
-              >
-                New Post
-              </a>
-              <a
-                href="/logout"
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: "#dc3545",
-                  color: "white",
-                  textDecoration: "none",
-                  borderRadius: "4px",
-                  fontSize: "14px",
-                }}
-              >
-                Sign Out
-              </a>
+              <ul>
+                <li>
+                  <a href="/blog/drafts">Drafts</a>
+                </li>
+                <li>
+                  <a href="/blog/edit">New Post</a>
+                </li>
+                <li>
+                  <a href="/logout">Sign Out</a>
+                </li>
+              </ul>
             </>
-          ) : (
-            <a
-              href="/login"
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#007acc",
-                color: "white",
-                textDecoration: "none",
-                borderRadius: "4px",
-                fontSize: "14px",
-              }}
-            >
-              Sign In
-            </a>
-          )}
+          ) : null}
         </div>
       </div>
 

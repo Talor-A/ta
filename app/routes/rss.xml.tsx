@@ -15,7 +15,7 @@ export async function loader({ context }: Route.LoaderArgs) {
     .where(isNotNull(blogPosts.publishedDate))
     .orderBy(blogPosts.publishedDate);
 
-  const baseUrl = "https://taloranderson.com"; // Replace with your actual domain
+  const baseUrl = "https://taloranderson.com";
   const buildDate = new Date().toUTCString();
 
   const rssItems = posts

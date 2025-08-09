@@ -1,0 +1,5 @@
+[fix]
+tools.prettier = {
+    command = ["bun", "prettier", "--write"],
+    patterns = ["glob:**/*.{js,jsx,ts,tsx,json,css,md}"]
+}

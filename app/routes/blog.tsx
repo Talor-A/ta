@@ -25,7 +25,8 @@ export function meta({}: Route.MetaArgs) {
     { title: "Blog - Talor Anderson" },
     {
       name: "description",
-      content: "Thoughts and writings on AI, engineering, and technology",
+      content:
+        "Thoughts on AI, fullstack development, and engineering culture.",
     },
   ];
 }
@@ -45,7 +46,7 @@ export default function Blog({ loaderData }: Route.ComponentProps) {
       >
         <div>
           <h1>Blog</h1>
-          <p>Thoughts and writings on AI, engineering, and technology</p>
+          <p>Thoughts on AI, fullstack development, and engineering culture.</p>
         </div>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
           {session ? (

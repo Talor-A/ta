@@ -156,7 +156,9 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastSavedStateRef = useRef({
     title: loaderData.post?.title || "",
-    content: loaderData.post?.body || "# New Blog Post\n\nStart writing your content here...",
+    content:
+      loaderData.post?.body ||
+      "# New Blog Post\n\nStart writing your content here...",
     slug: loaderData.post?.slug || "",
   });
 
@@ -176,37 +178,44 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   const debouncedSlug = useDebounce(slug, 2000);
 
   // Autosave function for drafts only
-  const autosave = useCallback((title: string, content: string, slug: string) => {
-    if (isPublished || !title.trim() || !content.trim()) return;
+  const autosave = useCallback(
+    (title: string, content: string, slug: string) => {
+      if (isPublished || !title.trim() || !content.trim()) return;
 
-    // Check if content has actually changed
-    const currentState = { title, content, slug };
-    const lastSaved = lastSavedStateRef.current;
-    
-    if (
-      currentState.title === lastSaved.title &&
-      currentState.content === lastSaved.content &&
-      currentState.slug === lastSaved.slug
-    ) {
-      return; // No changes to save
-    }
+      // Check if content has actually changed
+      const currentState = { title, content, slug };
+      const lastSaved = lastSavedStateRef.current;
 
-    const formData = new FormData();
-    formData.append("intent", "autosave");
-    formData.append("title", title);
-    formData.append("body", content);
-    formData.append("slug", slug);
-    if (postId) formData.append("postId", postId);
+      if (
+        currentState.title === lastSaved.title &&
+        currentState.content === lastSaved.content &&
+        currentState.slug === lastSaved.slug
+      ) {
+        return; // No changes to save
+      }
 
-    fetcher.submit(formData, { method: "post" });
-  }, [isPublished, postId, fetcher]);
+      const formData = new FormData();
+      formData.append("intent", "autosave");
+      formData.append("title", title);
+      formData.append("body", content);
+      formData.append("slug", slug);
+      if (postId) formData.append("postId", postId);
+
+      fetcher.submit(formData, { method: "post" });
+    },
+    [isPublished, postId, fetcher],
+  );
 
   // Handle autosave response
   useEffect(() => {
     if (fetcher.data?.success) {
       setLastSaved(new Date());
       // Update last saved state ref
-      lastSavedStateRef.current = { title: debouncedTitle, content: debouncedContent, slug: debouncedSlug };
+      lastSavedStateRef.current = {
+        title: debouncedTitle,
+        content: debouncedContent,
+        slug: debouncedSlug,
+      };
       if (fetcher.data.postId && !postId) {
         setPostId(fetcher.data.postId.toString());
       }

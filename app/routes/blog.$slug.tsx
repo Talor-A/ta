@@ -47,7 +47,10 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
           <h1>{post.title}</h1>
           <time className="dimmer" style={{ fontSize: "0.9em" }}>
             {post.publishedDate
-              ? new Date(post.publishedDate * 1000).toLocaleDateString("en-US", { timeZone: "UTC" })
+              ? new Date(post.publishedDate * 1000).toLocaleDateString(
+                  "en-US",
+                  { timeZone: "UTC" },
+                )
               : ""}
           </time>
         </header>

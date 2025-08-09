@@ -11,4 +11,5 @@ export default [
   route("blog/drafts", "routes/blog.drafts.tsx"),
   route("blog/edit", "routes/blog.edit.tsx"),
   route("blog/:slug", "routes/blog.$slug.tsx"),
+  route("rss.xml", "routes/rss.xml.tsx"),
 ] satisfies RouteConfig;

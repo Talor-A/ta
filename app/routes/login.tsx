@@ -24,13 +24,29 @@ export default function Login() {
     setError("");
 
     try {
-      await authClient.signIn.email({
+      console.log("🔐 Attempting login...");
+      const result = await authClient.signIn.email({
         email,
         password,
       });
-      // Redirect to blog on success
-      window.location.href = "/blog";
+      
+      console.log("Login result:", result);
+      
+      if (result.error) {
+        console.log("❌ Login failed:", result.error);
+        setError(result.error.message || "Authentication failed");
+        return;
+      }
+      
+      if (result.data) {
+        console.log("✅ Login successful");
+        window.location.href = "/blog";
+      } else {
+        console.log("❌ Login failed - no data returned");
+        setError("Authentication failed");
+      }
     } catch (err: any) {
+      console.log("💥 Login error:", err);
       setError(err.message || "Authentication failed");
     } finally {
       setIsLoading(false);

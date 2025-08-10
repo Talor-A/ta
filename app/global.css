@@ -35,6 +35,10 @@
   box-sizing: border-box;
 }
 
+:root, html, body {
+  min-height: 100vh;
+}
+
 body {
   font-family: var(--font-main);
   font-size: var(--font-scale);
@@ -208,12 +212,6 @@ label {
   padding: 20px;
 }
 
-/* Editor page */
-.editor {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-}
 
 .link-plain {
   color: var(--text-color);

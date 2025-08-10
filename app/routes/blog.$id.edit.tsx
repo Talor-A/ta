@@ -252,6 +252,24 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
     fetcher.submit(formData, { method: "post" });
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        switch (e.key.toLowerCase()) {
+          case "s":
+            e.preventDefault();
+            handleSave();
+            break;
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [textareaRef, handleSave]);
+
   const handlePublish = () => {
     const formData = new FormData();
     formData.append("intent", "publish" satisfies Intent);
@@ -268,8 +286,8 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   const isLoading = fetcher.state === "submitting";
 
   return (
-    <main className="editor">
-      <div className="mb-1">
+    <main className={styles.main}>
+      <div>
         <div className={styles.header}>
           <h1>Blog Editor</h1>
           <div className={`${styles.status} dimmer`}>
@@ -290,7 +308,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
         </p>
       </div>
 
-      <div className="mb-1">
+      <div>
         <input
           type="text"
           value={title}
@@ -330,7 +348,6 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
         onChange={(e) => setContent(e.target.value)}
         placeholder="Write your blog post in Markdown..."
         className={styles.editor}
-        style={{ padding: "15px" }}
       />
 
       <div className={styles.actions}>

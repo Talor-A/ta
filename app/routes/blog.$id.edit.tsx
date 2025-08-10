@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useFetcher, redirect, useLoaderData } from "react-router";
 import { useDebounce } from "../lib/useDebounce";
-import styles from "./blog.edit.module.css";
+import styles from "./blog.$id.edit.module.css";
 import type { Route } from "./+types/blog.$id.edit";
 import { blogPosts } from "../../database/schema";
 import { eq } from "drizzle-orm";
@@ -151,6 +151,10 @@ export async function action({
         publishedDate,
       })
       .where(eq(blogPosts.id, id));
+    return {
+      success: true,
+      message: "Post published",
+    };
   } else if (intent === "unpublish") {
     await context.db
       .update(blogPosts)
@@ -181,7 +185,7 @@ const isValidUrl = (string: string) => {
 };
 
 export default function BlogEdit({ loaderData }: Route.ComponentProps) {
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<Awaited<ReturnType<typeof action>>>();
   const { textareaRef, content, setContent } = useMarkdownTextArea(
     loaderData.post.body
   );
@@ -193,10 +197,6 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   });
 
   useEffect(() => {
-    console.log(fetcher.data);
-  }, [fetcher.data]);
-
-  useEffect(() => {
     setTitle((preexistingTitle) => preexistingTitle || loaderData.post.title);
     setSlug((preexistingSlug) => preexistingSlug || loaderData.post.slug);
   }, [loaderData.post.title, loaderData.post.slug]);
@@ -206,11 +206,15 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   const [slug, setSlug] = useState(loaderData.post.slug);
 
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [isPublished] = useState(!!loaderData.post.publishedDate);
+  const isPublished = !!loaderData.post.publishedDate;
 
   const debouncedBody = useDebounce(content, 1000);
 
   useEffect(() => {
+    if (loaderData.post.publishedDate) {
+      return;
+    }
+
     async function doit() {
       if (debouncedBody !== lastSavedStateRef.current.content) {
         await fetcher.submit(
@@ -230,7 +234,13 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
       }
     }
     doit();
-  }, [debouncedBody, title, slug, fetcher.submit]);
+  }, [
+    debouncedBody,
+    title,
+    slug,
+    fetcher.submit,
+    loaderData.post.publishedDate,
+  ]);
 
   const handleSave = () => {
     const formData = new FormData();
@@ -244,20 +254,16 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
 
   const handlePublish = () => {
     const formData = new FormData();
-    formData.append("intent", "publish");
-    formData.append("title", title);
-    formData.append("body", content);
-    formData.append("slug", slug);
+    formData.append("intent", "publish" satisfies Intent);
 
     fetcher.submit(formData, { method: "post" });
   };
 
-  // Handle redirect after publish
-  useEffect(() => {
-    if (fetcher.data?.redirect) {
-      window.location.href = fetcher.data.redirect;
-    }
-  }, [fetcher.data]);
+  const handleUnpublish = () => {
+    const formData = new FormData();
+    formData.append("intent", "unpublish" satisfies Intent);
+    fetcher.submit(formData, { method: "post" });
+  };
 
   const isLoading = fetcher.state === "submitting";
 
@@ -290,7 +296,10 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={() => {
-            fetcher.submit({ intent: "autosave", title }, { method: "post" });
+            fetcher.submit(
+              { intent: "autosave" satisfies Intent, title },
+              { method: "post" }
+            );
           }}
           placeholder="Post title..."
           style={{
@@ -304,7 +313,10 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
           onBlur={() => {
-            fetcher.submit({ intent: "autosave", slug }, { method: "post" });
+            fetcher.submit(
+              { intent: "autosave" satisfies Intent, slug },
+              { method: "post" }
+            );
           }}
           placeholder="url-slug (auto-generated from title if empty)"
           className="dimmer"
@@ -322,27 +334,18 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
       />
 
       <div className={styles.actions}>
-        <button
-          onClick={handleSave}
-          disabled={isLoading}
-          className={isPublished ? styles.hidden : ""}
-        >
-          {isLoading && fetcher.formData?.get("intent") === "save"
-            ? "Saving..."
-            : "Save Draft"}
+        <button onClick={handleSave} disabled={isLoading}>
+          Save
         </button>
-        <button onClick={handlePublish} disabled={isLoading}>
-          {isLoading &&
-          (fetcher.formData?.get("intent") === "publish" ||
-            fetcher.formData?.get("intent") === "autosave")
-            ? "Publishing..."
-            : isPublished
-              ? "Update"
-              : "Publish"}
-        </button>
-        <a href="/blog" className={styles.cancel}>
-          Cancel
-        </a>
+        {isPublished ? (
+          <button onClick={handleUnpublish} disabled={isLoading}>
+            Unpublish
+          </button>
+        ) : (
+          <button onClick={handlePublish} disabled={isLoading}>
+            Publish
+          </button>
+        )}
 
         {fetcher.data?.error && (
           <span className="error" style={{ marginLeft: "10px" }}>

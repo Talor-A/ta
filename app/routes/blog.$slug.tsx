@@ -3,8 +3,11 @@ import { blogPosts } from "../../database/schema";
 import { eq, isNotNull, and } from "drizzle-orm";
 import Markdown from "react-markdown";
 import styles from "./blog.$slug.module.css";
+import { getOptionalAuth } from "~/lib/auth-utils";
 
-export async function loader({ context, params }: Route.LoaderArgs) {
+export async function loader({ context, params, request }: Route.LoaderArgs) {
+  const session = await getOptionalAuth(request);
+
   const post = await context.db
     .select()
     .from(blogPosts)
@@ -17,7 +20,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     throw new Response("Post not found", { status: 404 });
   }
 
-  return { post };
+  return { post, session };
 }
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -39,7 +42,7 @@ function preprocessMarkdown(markdown: string): string {
 }
 
 export default function BlogPost({ loaderData }: Route.ComponentProps) {
-  const { post } = loaderData;
+  const { post, session } = loaderData;
 
   return (
     <main>
@@ -57,15 +60,31 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
             </a>
             <span role="h1">{post.title}</span>
           </h1>
-          <time className="dimmer" style={{ fontSize: "0.9em" }}>
-            {post.publishedDate
-              ? new Date(post.publishedDate * 1000).toLocaleDateString(
-                  "en-US",
-                  { timeZone: "UTC" }
-                ) + " | "
-              : ""}
-            Talor Anderson
-          </time>
+          <span className="dimmer" style={{ fontSize: "0.9em" }}>
+            {post.publishedDate ? (
+              <span>
+                <time>
+                  {new Date(post.publishedDate * 1000).toLocaleDateString(
+                    "en-US",
+                    { timeZone: "UTC" }
+                  )}
+                </time>
+                {" | "}
+                Talor Anderson
+              </span>
+            ) : null}
+            {session ? (
+              <span>
+                <a
+                  className="link-plain"
+                  href={`/blog/${post.id}/edit`}
+                  style={{ marginLeft: "10px" }}
+                >
+                  Edit
+                </a>
+              </span>
+            ) : null}
+          </span>
         </header>
 
         <div>

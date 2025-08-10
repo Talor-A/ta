@@ -62,8 +62,9 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
               ? new Date(post.publishedDate * 1000).toLocaleDateString(
                   "en-US",
                   { timeZone: "UTC" }
-                )
+                ) + " | "
               : ""}
+            Talor Anderson
           </time>
         </header>
 

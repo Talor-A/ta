@@ -225,3 +225,14 @@ label {
 .link-plain:visited {
   color: var(--text-color);
 }
+
+.link-underline {
+  color: var(--text-color);
+  text-decoration: underline;
+}
+.link-underline:hover {
+  text-decoration: underline;
+}
+.link-underline:visited {
+  color: var(--text-color);
+}

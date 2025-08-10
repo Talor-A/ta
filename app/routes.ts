@@ -9,7 +9,8 @@ export default [
   route("api/auth/*", "routes/api.auth.$.tsx"),
   route("blog", "routes/blog.tsx"),
   route("blog/drafts", "routes/blog.drafts.tsx"),
-  route("blog/edit", "routes/blog.edit.tsx"),
+  route("blog/new", "routes/blog.new.tsx"),
+  route("blog/:id/edit", "routes/blog.$id.edit.tsx"),
   route("blog/:slug", "routes/blog.$slug.tsx"),
   route("rss.xml", "routes/rss.xml.tsx"),
 ] satisfies RouteConfig;

@@ -1,0 +1,498 @@
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useFetcher, redirect, useLoaderData } from "react-router";
+import { useDebounce } from "../lib/useDebounce";
+import styles from "./blog.edit.module.css";
+import type { Route } from "./+types/blog.$id.edit";
+import { blogPosts } from "../../database/schema";
+import { eq } from "drizzle-orm";
+import { requireAuth } from "../lib/auth-utils";
+
+export async function loader({ context, request, params }: Route.LoaderArgs) {
+  await requireAuth(request);
+
+  const id = params.id;
+
+  const post = await context.db
+    .select()
+    .from(blogPosts)
+    .where(eq(blogPosts.id, parseInt(id)))
+    .get();
+
+  if (!post) {
+    throw new Response("Post not found", { status: 404 });
+  }
+
+  return { post };
+}
+
+const intents = ["save", "publish", "unpublish", "autosave"] as const;
+type Intent = (typeof intents)[number];
+
+function intent(str: string): str is Intent {
+  return intents.includes(str as any);
+}
+
+function getIntent(str: string): Intent | null {
+  if (intent(str)) {
+    return str;
+  }
+  return null;
+}
+
+function slugify(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+$/, "")
+    .replace(/^-+/, "");
+}
+
+export async function action({
+  context,
+  request,
+  params: { id: stringId },
+}: Route.ActionArgs) {
+  await requireAuth(request);
+  const id = parseInt(stringId);
+
+  const formData = await request.formData();
+  const intent = getIntent(formData.get("intent") as string);
+  const title = formData.get("title") as string | null;
+  const body = formData.get("body") as string | null;
+  const slug = formData.get("slug") as string | null;
+
+  if (!intent) {
+    return { error: "Invalid intent" };
+  }
+
+  if (intent === "autosave") {
+    const post = await context.db
+      .select()
+      .from(blogPosts)
+      .where(eq(blogPosts.id, id))
+      .get();
+    if (!post) {
+      return { error: "Post not found" };
+    }
+    if (post.publishedDate) {
+      return { error: "Cannot autosave a published post" };
+    }
+
+    const fieldsToUpdate: { title?: string; body?: string; slug?: string } = {};
+
+    if (body !== null) {
+      fieldsToUpdate.body = body;
+      if (!post.slug || post.slug.startsWith("draft-")) {
+        fieldsToUpdate.slug = slugify(title || "draft");
+      }
+
+      if (!post.title) {
+        fieldsToUpdate.title = body.split("\n")[0]?.trim() || "Untitled Draft";
+      }
+    }
+
+    if (title !== null) {
+      fieldsToUpdate.title = title;
+    }
+
+    if (!!slug) {
+      fieldsToUpdate.slug = slugify(slug);
+    }
+
+    // Update existing draft
+    await context.db
+      .update(blogPosts)
+      .set(fieldsToUpdate)
+      .where(eq(blogPosts.id, id));
+
+    return { success: true, message: "Changes Saved" };
+  } else if (intent === "save") {
+    const fieldsToUpdate: { title?: string; body?: string; slug?: string } = {};
+
+    if (title !== null) {
+      fieldsToUpdate.title = title;
+    }
+    if (body !== null) {
+      fieldsToUpdate.body = body;
+    }
+    if (!!slug) {
+      fieldsToUpdate.slug = slugify(slug);
+    }
+
+    // Update existing draft
+    await context.db
+      .update(blogPosts)
+      .set(fieldsToUpdate)
+      .where(eq(blogPosts.id, id));
+
+    return { success: true, message: "Draft saved" };
+  } else if (intent === "publish") {
+    const publishedDate = Math.floor(Date.now() / 1000);
+
+    const post = await context.db
+      .select()
+      .from(blogPosts)
+      .where(eq(blogPosts.id, id))
+      .get();
+
+    if (!post) {
+      return { error: "Post not found" };
+    }
+
+    if (!post.slug || !post.title || !post.body) {
+      return {
+        error: "Post must have a title, slug, and body to be published",
+      };
+    }
+
+    await context.db
+      .update(blogPosts)
+      .set({
+        publishedDate,
+      })
+      .where(eq(blogPosts.id, id));
+  } else if (intent === "unpublish") {
+    await context.db
+      .update(blogPosts)
+      .set({ publishedDate: null })
+      .where(eq(blogPosts.id, id));
+    return { success: true, message: "Post unpublished" };
+  }
+
+  return { error: "Unknown action" };
+}
+
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Blog Editor - Talor Anderson" },
+    {
+      name: "description",
+      content: "Write and edit blog posts",
+    },
+  ];
+}
+const isValidUrl = (string: string) => {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return false;
+  }
+};
+
+export default function BlogEdit({ loaderData }: Route.ComponentProps) {
+  const fetcher = useFetcher();
+  const { textareaRef, content, setContent } = useMarkdownTextArea(
+    loaderData.post.body
+  );
+
+  const lastSavedStateRef = useRef({
+    title: loaderData.post.title,
+    content: loaderData.post.body,
+    slug: loaderData.post.slug,
+  });
+
+  useEffect(() => {
+    console.log(fetcher.data);
+  }, [fetcher.data]);
+
+  useEffect(() => {
+    setTitle((preexistingTitle) => preexistingTitle || loaderData.post.title);
+    setSlug((preexistingSlug) => preexistingSlug || loaderData.post.slug);
+  }, [loaderData.post.title, loaderData.post.slug]);
+
+  const [title, setTitle] = useState(loaderData.post.title);
+
+  const [slug, setSlug] = useState(loaderData.post.slug);
+
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isPublished] = useState(!!loaderData.post.publishedDate);
+
+  const debouncedBody = useDebounce(content, 1000);
+
+  useEffect(() => {
+    async function doit() {
+      if (debouncedBody !== lastSavedStateRef.current.content) {
+        await fetcher.submit(
+          {
+            intent: "autosave" satisfies Intent,
+            body: debouncedBody,
+          },
+          { method: "post" }
+        );
+
+        setLastSaved(new Date());
+        lastSavedStateRef.current = {
+          title,
+          content: debouncedBody,
+          slug,
+        };
+      }
+    }
+    doit();
+  }, [debouncedBody, title, slug, fetcher.submit]);
+
+  const handleSave = () => {
+    const formData = new FormData();
+    formData.append("intent", "save" satisfies Intent);
+    formData.append("title", title);
+    formData.append("body", content);
+    formData.append("slug", slug);
+
+    fetcher.submit(formData, { method: "post" });
+  };
+
+  const handlePublish = () => {
+    const formData = new FormData();
+    formData.append("intent", "publish");
+    formData.append("title", title);
+    formData.append("body", content);
+    formData.append("slug", slug);
+
+    fetcher.submit(formData, { method: "post" });
+  };
+
+  // Handle redirect after publish
+  useEffect(() => {
+    if (fetcher.data?.redirect) {
+      window.location.href = fetcher.data.redirect;
+    }
+  }, [fetcher.data]);
+
+  const isLoading = fetcher.state === "submitting";
+
+  return (
+    <main className="editor">
+      <div className="mb-1">
+        <div className={styles.header}>
+          <h1>Blog Editor</h1>
+          <div className={`${styles.status} dimmer`}>
+            {isPublished && <span className={styles.published}>Published</span>}
+            {!isPublished && lastSaved && (
+              <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
+            )}
+            {!isPublished && !lastSaved && !isLoading && (
+              <span>Auto-saving drafts...</span>
+            )}
+            {isLoading && <span>Saving...</span>}
+          </div>
+        </div>
+        <p className={`dimmer ${styles.help}`}>
+          Use <kbd>Cmd+B</kbd> for bold, <kbd>Cmd+I</kbd> for italic,{" "}
+          <kbd>Cmd+/</kbd> for comments. Select text and <kbd>Cmd+V</kbd> a URL
+          to create links.
+        </p>
+      </div>
+
+      <div className="mb-1">
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onBlur={() => {
+            fetcher.submit({ intent: "autosave", title }, { method: "post" });
+          }}
+          placeholder="Post title..."
+          style={{
+            fontSize: "18px",
+            fontWeight: "bold",
+            marginBottom: "10px",
+          }}
+        />
+        <input
+          type="text"
+          value={slug}
+          onChange={(e) => setSlug(e.target.value)}
+          onBlur={() => {
+            fetcher.submit({ intent: "autosave", slug }, { method: "post" });
+          }}
+          placeholder="url-slug (auto-generated from title if empty)"
+          className="dimmer"
+          style={{ fontSize: "14px" }}
+        />
+      </div>
+
+      <textarea
+        ref={textareaRef}
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder="Write your blog post in Markdown..."
+        className={styles.editor}
+        style={{ padding: "15px" }}
+      />
+
+      <div className={styles.actions}>
+        <button
+          onClick={handleSave}
+          disabled={isLoading}
+          className={isPublished ? styles.hidden : ""}
+        >
+          {isLoading && fetcher.formData?.get("intent") === "save"
+            ? "Saving..."
+            : "Save Draft"}
+        </button>
+        <button onClick={handlePublish} disabled={isLoading}>
+          {isLoading &&
+          (fetcher.formData?.get("intent") === "publish" ||
+            fetcher.formData?.get("intent") === "autosave")
+            ? "Publishing..."
+            : isPublished
+              ? "Update"
+              : "Publish"}
+        </button>
+        <a href="/blog" className={styles.cancel}>
+          Cancel
+        </a>
+
+        {fetcher.data?.error && (
+          <span className="error" style={{ marginLeft: "10px" }}>
+            {fetcher.data.error}
+          </span>
+        )}
+      </div>
+    </main>
+  );
+}
+
+function useMarkdownTextArea(initialValue: string = "") {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [content, setContent] = useState(initialValue);
+
+  const wrapSelection = useCallback(
+    (prefix: string, suffix: string = prefix) => {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selectedText = textarea.value.substring(start, end);
+      const beforeText = textarea.value.substring(0, start);
+      const afterText = textarea.value.substring(end);
+
+      const newText = beforeText + prefix + selectedText + suffix + afterText;
+      setContent(newText);
+
+      // Restore cursor position
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + prefix.length, end + prefix.length);
+      }, 0);
+    },
+    []
+  );
+
+  const handlePaste = useCallback((e: ClipboardEvent) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    // Only proceed if there's selected text
+    if (start === end) return;
+
+    const selectedText = textarea.value.substring(start, end);
+    const pastedText = e.clipboardData?.getData("text") || "";
+
+    // Check if pasted text is a URL
+    if (isValidUrl(pastedText)) {
+      e.preventDefault();
+
+      const beforeText = textarea.value.substring(0, start);
+      const afterText = textarea.value.substring(end);
+      const linkMarkdown = `[${selectedText}](${pastedText})`;
+
+      const newText = beforeText + linkMarkdown + afterText;
+      setContent(newText);
+
+      requestAnimationFrame(() => {
+        textarea.focus();
+        textarea.setSelectionRange(
+          start + linkMarkdown.length,
+          start + linkMarkdown.length
+        );
+      });
+    }
+  }, []);
+
+  const toggleBlockComment = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const lines = textarea.value.split("\n");
+
+    // Find which lines are selected
+    let startLine = 0;
+    let endLine = 0;
+    let currentPos = 0;
+
+    for (let i = 0; i < lines.length; i++) {
+      if (currentPos <= start && start <= currentPos + lines[i].length) {
+        startLine = i;
+      }
+      if (currentPos <= end && end <= currentPos + lines[i].length + 1) {
+        endLine = i;
+        break;
+      }
+      currentPos += lines[i].length + 1; // +1 for newline
+    }
+
+    // Check if all selected lines are commented
+    const selectedLines = lines.slice(startLine, endLine + 1);
+    const allCommented = selectedLines.every(
+      (line) => line.trim().startsWith("<!-- ") && line.trim().endsWith(" -->")
+    );
+
+    // Toggle comments
+    for (let i = startLine; i <= endLine; i++) {
+      if (allCommented) {
+        // Remove comment
+        lines[i] = lines[i].replace(/^\s*<!-- /, "").replace(/ -->\s*$/, "");
+      } else {
+        // Add comment
+        lines[i] = `<!-- ${lines[i]} -->`;
+      }
+    }
+
+    setContent(lines.join("\n"));
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        switch (e.key.toLowerCase()) {
+          case "b":
+            e.preventDefault();
+            wrapSelection("**");
+            break;
+          case "i":
+            e.preventDefault();
+            wrapSelection("*");
+            break;
+          case "/":
+            e.preventDefault();
+            toggleBlockComment();
+            break;
+        }
+      }
+    };
+
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.addEventListener("paste", handlePaste);
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      if (textarea) {
+        textarea.removeEventListener("paste", handlePaste);
+      }
+    };
+  }, []);
+
+  return { textareaRef, content, setContent };
+}

@@ -22,6 +22,14 @@ export default function Home() {
         enjoy climbing, weightlifting, biking, and lifting.
       </p>
 
+      <p>
+        Read my{" "}
+        <a href="/blog" className="link-underline">
+          blog
+        </a>
+        .
+      </p>
+
       <p>You can find me at any of these places:</p>
 
       <p className="links">

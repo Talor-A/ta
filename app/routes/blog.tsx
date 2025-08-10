@@ -66,7 +66,7 @@ export default function Blog({ loaderData }: Route.ComponentProps) {
                   </a>
                 </li>
                 <li>
-                  <a className="link-plain" href="/blog/edit">
+                  <a className="link-plain" href="/blog/new">
                     New Post
                   </a>
                 </li>

@@ -1,10 +1,9 @@
 import type { Route } from "./+types/blog.drafts";
 import { blogPosts } from "../../database/schema";
-import { isNull } from "drizzle-orm";
+import { desc, isNull } from "drizzle-orm";
 import { requireAuth } from "../lib/auth-utils";
 
 export async function loader({ context, request }: Route.LoaderArgs) {
-  // Require authentication
   await requireAuth(request);
   const drafts = await context.db
     .select({
@@ -14,7 +13,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
     })
     .from(blogPosts)
     .where(isNull(blogPosts.publishedDate))
-    .orderBy(blogPosts.id);
+    .orderBy(desc(blogPosts.id));
 
   return { drafts };
 }
@@ -44,7 +43,7 @@ export default function BlogDrafts({ loaderData }: Route.ComponentProps) {
           <h1>Draft Posts</h1>
           <p>Unpublished posts that are automatically saved as you write</p>
         </div>
-        <a href="/blog/edit">New Draft</a>
+        <a href="/blog/new">New Draft</a>
       </header>
 
       {loaderData.drafts.length > 0 ? (
@@ -77,7 +76,7 @@ export default function BlogDrafts({ loaderData }: Route.ComponentProps) {
                   alignItems: "center",
                 }}
               >
-                <a href={`/blog/edit?edit=${draft.id}`}>Edit</a>
+                <a href={`/blog/${draft.id}/edit`}>Edit</a>
               </div>
             </article>
           ))}
@@ -97,7 +96,7 @@ export default function BlogDrafts({ loaderData }: Route.ComponentProps) {
           <p style={{ margin: "0 0 20px 0" }}>
             Start writing to automatically create drafts
           </p>
-          <a href="/blog/edit">Create Your First Draft</a>
+          <a href="/blog/new">Create Your First Draft</a>
         </div>
       )}
 

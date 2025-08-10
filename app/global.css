@@ -109,10 +109,6 @@ li {
   margin: 0.5rem 0;
 }
 
-p {
-  text-wrap: balance;
-}
-
 .links a {
   color: var(--text-color);
 }

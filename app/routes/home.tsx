@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <main>
       <h1>Talor Anderson</h1>
-      <p>
+      <p style={{ textWrap: "balance" }}>
         I'm an AI engineer at Honeycomb.io, based in San Diego, California.
         Previously, I was a product engineer at Replit. I care deeply about
         building tools to empower humans. My work has focused on transforming

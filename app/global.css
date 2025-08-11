@@ -35,7 +35,9 @@
   box-sizing: border-box;
 }
 
-:root, html, body {
+:root,
+html,
+body {
   min-height: 100vh;
 }
 
@@ -207,7 +209,6 @@ label {
   margin: 80px auto;
   padding: 20px;
 }
-
 
 .link-plain {
   color: var(--text-color);

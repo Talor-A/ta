@@ -43,7 +43,7 @@ export async function loader({ context }: Route.LoaderArgs) {
   const rssContent = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Talor Anderson - Blog</title>
+    <title>Talor Anderson's Blog</title>
     <link>${baseUrl}/blog</link>
     <description>Thoughts on AI, fullstack development, and engineering culture.</description>
     <language>en-us</language>

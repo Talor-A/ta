@@ -364,6 +364,13 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
           </button>
         )}
 
+        <a
+          href={`/blog/${loaderData.post.slug}?preview=1`}
+          className="link-plain"
+        >
+          Preview
+        </a>
+
         {fetcher.data?.error && (
           <span className="error" style={{ marginLeft: "10px" }}>
             {fetcher.data.error}

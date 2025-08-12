@@ -5,15 +5,23 @@ import Markdown from "react-markdown";
 import styles from "./blog.$slug.module.css";
 import { getOptionalAuth } from "~/lib/auth-utils";
 
+function hasPreview(url: string): boolean {
+  const previewParam = new URL(url).searchParams.get("preview");
+
+  return previewParam === "true" || previewParam === "1";
+}
+
 export async function loader({ context, params, request }: Route.LoaderArgs) {
   const session = await getOptionalAuth(request);
+
+  const whereClause = hasPreview(request.url)
+    ? eq(blogPosts.slug, params.slug)
+    : and(eq(blogPosts.slug, params.slug), isNotNull(blogPosts.publishedDate));
 
   const post = await context.db
     .select()
     .from(blogPosts)
-    .where(
-      and(eq(blogPosts.slug, params.slug), isNotNull(blogPosts.publishedDate))
-    )
+    .where(whereClause)
     .get();
 
   if (!post) {

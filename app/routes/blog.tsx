@@ -1,6 +1,6 @@
 import type { Route } from "./+types/blog";
 import { blogPosts } from "../../database/schema";
-import { isNotNull } from "drizzle-orm";
+import { isNotNull, desc } from "drizzle-orm";
 import { getOptionalAuth } from "../lib/auth-utils";
 import styles from "./blog.module.css";
 
@@ -16,7 +16,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
     })
     .from(blogPosts)
     .where(isNotNull(blogPosts.publishedDate))
-    .orderBy(blogPosts.publishedDate);
+    .orderBy(desc(blogPosts.publishedDate));
 
   return { posts, session };
 }

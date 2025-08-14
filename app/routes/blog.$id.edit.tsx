@@ -83,7 +83,14 @@ export async function action({
     if (body !== null) {
       fieldsToUpdate.body = body;
       if (!post.slug || post.slug.startsWith("draft-")) {
-        fieldsToUpdate.slug = slugify(title || "draft");
+        const newSlug = slugify(title || "draft");
+        const existing = await context.db
+          .select()
+          .from(blogPosts)
+          .where(eq(blogPosts.slug, newSlug))
+          .get();
+        
+        fieldsToUpdate.slug = existing ? `${newSlug}-${id}` : newSlug;
       }
 
       if (!post.title) {

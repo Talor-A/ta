@@ -417,10 +417,12 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
         />
       </div>
 
-      <div style={{ marginBottom: "20px" }}>
-        <h3 style={{ margin: "0 0 10px 0", fontSize: "16px" }}>
-          Bluesky Comments (Optional)
-        </h3>
+      <details>
+        <summary
+          style={{ fontSize: "16px", cursor: "pointer", marginBottom: "10px" }}
+        >
+          Bluesky Comments (Optional) {blueskyDid && blueskyPostCid && "✓"}
+        </summary>
 
         <div style={{ marginBottom: "15px" }}>
           <div style={{ display: "flex", gap: "8px", marginBottom: "5px" }}>
@@ -484,7 +486,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
           className="dimmer"
           style={{ fontSize: "14px" }}
         />
-      </div>
+      </details>
 
       <textarea
         ref={textareaRef}

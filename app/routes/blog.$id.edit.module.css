@@ -1,6 +1,6 @@
 .main {
   display: grid;
-  grid-template-rows: min-content min-content 1fr min-content;
+  grid-template-rows: min-content min-content min-content 1fr min-content;
 
   max-width: 800px;
   margin: 0 auto;

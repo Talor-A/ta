@@ -6,6 +6,7 @@ import type { Route } from "./+types/blog.$id.edit";
 import { blogPosts } from "../../database/schema";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../lib/auth-utils";
+import { convertBlueskyUrl } from "../lib/bluesky-utils";
 
 export async function loader({ context, request, params }: Route.LoaderArgs) {
   await requireAuth(request);
@@ -252,9 +253,33 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   const [blueskyPostCid, setBlueskyPostCid] = useState(
     loaderData.post.blueskyPostCid || ""
   );
+  const [blueskyUrl, setBlueskyUrl] = useState("");
+  const [isConverting, setIsConverting] = useState(false);
 
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const isPublished = !!loaderData.post.publishedDate;
+
+  const handleBlueskyUrlConvert = async () => {
+    if (!blueskyUrl.trim()) return;
+
+    setIsConverting(true);
+    try {
+      const result = await convertBlueskyUrl(blueskyUrl);
+      if (result) {
+        setBlueskyDid(result.did);
+        setBlueskyPostCid(result.cid);
+        setBlueskyUrl(""); // Clear the URL field after successful conversion
+      } else {
+        alert(
+          "Invalid Bluesky URL. Please use format: https://bsky.app/profile/{handle}/post/{cid}"
+        );
+      }
+    } catch (error) {
+      alert("Failed to convert URL. Please check the URL and try again.");
+    } finally {
+      setIsConverting(false);
+    }
+  };
 
   const debouncedBody = useDebounce(content, 1000);
 
@@ -396,6 +421,41 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
         <h3 style={{ margin: "0 0 10px 0", fontSize: "16px" }}>
           Bluesky Comments (Optional)
         </h3>
+
+        <div style={{ marginBottom: "15px" }}>
+          <div style={{ display: "flex", gap: "8px", marginBottom: "5px" }}>
+            <input
+              type="url"
+              value={blueskyUrl}
+              onChange={(e) => setBlueskyUrl(e.target.value)}
+              placeholder="https://bsky.app/profile/handle/post/cid"
+              style={{ fontSize: "14px", flex: "1" }}
+            />
+            <button
+              type="button"
+              onClick={handleBlueskyUrlConvert}
+              disabled={isConverting || !blueskyUrl.trim()}
+              style={{
+                fontSize: "12px",
+                padding: "4px 12px",
+                background: isConverting ? "#ccc" : "#3b82f6",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor:
+                  isConverting || !blueskyUrl.trim()
+                    ? "not-allowed"
+                    : "pointer",
+              }}
+            >
+              {isConverting ? "Converting..." : "Convert"}
+            </button>
+          </div>
+          <p className="dimmer" style={{ fontSize: "12px", margin: "0" }}>
+            Paste a Bluesky post URL to auto-fill DID and CID fields below
+          </p>
+        </div>
+
         <input
           type="text"
           value={blueskyDid}
@@ -424,10 +484,6 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
           className="dimmer"
           style={{ fontSize: "14px" }}
         />
-        <p className="dimmer" style={{ fontSize: "12px", margin: "5px 0 0 0" }}>
-          To enable Bluesky comments, share your blog post on Bluesky and enter
-          your DID and the post's CID here.
-        </p>
       </div>
 
       <textarea

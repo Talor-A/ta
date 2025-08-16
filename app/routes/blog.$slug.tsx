@@ -4,6 +4,7 @@ import { eq, isNotNull, and } from "drizzle-orm";
 import Markdown from "react-markdown";
 import styles from "./blog.$slug.module.css";
 import { getOptionalAuth } from "~/lib/auth-utils";
+import BlueskyComments from "~/components/BlueskyComments";
 
 function hasPreview(url: string): boolean {
   const previewParam = new URL(url).searchParams.get("preview");
@@ -99,6 +100,24 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
           <Markdown>{preprocessMarkdown(post.body)}</Markdown>
         </div>
       </article>
+
+      {/* Bluesky Comments */}
+      {post.publishedDate && post.blueskyDid && post.blueskyPostCid && (
+        <section
+          style={{
+            marginTop: "2rem",
+            paddingTop: "2rem",
+            borderTop: "1px solid #e5e5e5",
+          }}
+        >
+          <h2>Comments</h2>
+          <BlueskyComments
+            did={post.blueskyDid}
+            postCid={post.blueskyPostCid}
+            skipFirst={true}
+          />
+        </section>
+      )}
 
       {/* <nav
         style={{

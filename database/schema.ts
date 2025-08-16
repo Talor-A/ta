@@ -23,6 +23,8 @@ export const blogPosts = sqliteTable("blogPosts", {
   title: text().notNull(),
   body: text().notNull(),
   publishedDate: integer(),
+  blueskyDid: text(),
+  blueskyPostCid: text(),
 });
 
 // Better-auth tables

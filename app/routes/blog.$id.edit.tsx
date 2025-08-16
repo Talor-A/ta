@@ -60,6 +60,8 @@ export async function action({
   const title = formData.get("title") as string | null;
   const body = formData.get("body") as string | null;
   const slug = formData.get("slug") as string | null;
+  const blueskyDid = formData.get("blueskyDid") as string | null;
+  const blueskyPostCid = formData.get("blueskyPostCid") as string | null;
 
   if (!intent) {
     return { error: "Invalid intent" };
@@ -78,7 +80,13 @@ export async function action({
       return { error: "Cannot autosave a published post" };
     }
 
-    const fieldsToUpdate: { title?: string; body?: string; slug?: string } = {};
+    const fieldsToUpdate: {
+      title?: string;
+      body?: string;
+      slug?: string;
+      blueskyDid?: string | null;
+      blueskyPostCid?: string | null;
+    } = {};
 
     if (body !== null) {
       fieldsToUpdate.body = body;
@@ -106,6 +114,18 @@ export async function action({
       fieldsToUpdate.slug = slugify(slug);
     }
 
+    if (blueskyDid !== null && blueskyDid.trim() !== "") {
+      fieldsToUpdate.blueskyDid = blueskyDid;
+    } else if (blueskyDid !== null && blueskyDid.trim() === "") {
+      fieldsToUpdate.blueskyDid = null;
+    }
+
+    if (blueskyPostCid !== null && blueskyPostCid.trim() !== "") {
+      fieldsToUpdate.blueskyPostCid = blueskyPostCid;
+    } else if (blueskyPostCid !== null && blueskyPostCid.trim() === "") {
+      fieldsToUpdate.blueskyPostCid = null;
+    }
+
     // Update existing draft
     await context.db
       .update(blogPosts)
@@ -114,7 +134,13 @@ export async function action({
 
     return { success: true, message: "Changes Saved" };
   } else if (intent === "save") {
-    const fieldsToUpdate: { title?: string; body?: string; slug?: string } = {};
+    const fieldsToUpdate: {
+      title?: string;
+      body?: string;
+      slug?: string;
+      blueskyDid?: string | null;
+      blueskyPostCid?: string | null;
+    } = {};
 
     if (title !== null) {
       fieldsToUpdate.title = title;
@@ -124,6 +150,16 @@ export async function action({
     }
     if (!!slug) {
       fieldsToUpdate.slug = slugify(slug);
+    }
+    if (blueskyDid !== null && blueskyDid.trim() !== "") {
+      fieldsToUpdate.blueskyDid = blueskyDid;
+    } else if (blueskyDid !== null && blueskyDid.trim() === "") {
+      fieldsToUpdate.blueskyDid = null;
+    }
+    if (blueskyPostCid !== null && blueskyPostCid.trim() !== "") {
+      fieldsToUpdate.blueskyPostCid = blueskyPostCid;
+    } else if (blueskyPostCid !== null && blueskyPostCid.trim() === "") {
+      fieldsToUpdate.blueskyPostCid = null;
     }
 
     // Update existing draft
@@ -209,8 +245,13 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   }, [loaderData.post.title, loaderData.post.slug]);
 
   const [title, setTitle] = useState(loaderData.post.title);
-
   const [slug, setSlug] = useState(loaderData.post.slug);
+  const [blueskyDid, setBlueskyDid] = useState(
+    loaderData.post.blueskyDid || ""
+  );
+  const [blueskyPostCid, setBlueskyPostCid] = useState(
+    loaderData.post.blueskyPostCid || ""
+  );
 
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const isPublished = !!loaderData.post.publishedDate;
@@ -255,6 +296,8 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
     formData.append("title", title);
     formData.append("body", content);
     formData.append("slug", slug);
+    formData.append("blueskyDid", blueskyDid);
+    formData.append("blueskyPostCid", blueskyPostCid);
 
     fetcher.submit(formData, { method: "post" });
   };
@@ -347,6 +390,44 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
           className="dimmer"
           style={{ fontSize: "14px" }}
         />
+      </div>
+
+      <div style={{ marginBottom: "20px" }}>
+        <h3 style={{ margin: "0 0 10px 0", fontSize: "16px" }}>
+          Bluesky Comments (Optional)
+        </h3>
+        <input
+          type="text"
+          value={blueskyDid}
+          onChange={(e) => setBlueskyDid(e.target.value)}
+          onBlur={() => {
+            fetcher.submit(
+              { intent: "autosave" satisfies Intent, blueskyDid },
+              { method: "post" }
+            );
+          }}
+          placeholder="did:plc:... (your Bluesky DID)"
+          className="dimmer"
+          style={{ fontSize: "14px", marginBottom: "8px" }}
+        />
+        <input
+          type="text"
+          value={blueskyPostCid}
+          onChange={(e) => setBlueskyPostCid(e.target.value)}
+          onBlur={() => {
+            fetcher.submit(
+              { intent: "autosave" satisfies Intent, blueskyPostCid },
+              { method: "post" }
+            );
+          }}
+          placeholder="3k... (Bluesky post CID)"
+          className="dimmer"
+          style={{ fontSize: "14px" }}
+        />
+        <p className="dimmer" style={{ fontSize: "12px", margin: "5px 0 0 0" }}>
+          To enable Bluesky comments, share your blog post on Bluesky and enter
+          your DID and the post's CID here.
+        </p>
       </div>
 
       <textarea

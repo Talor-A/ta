@@ -14,7 +14,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
 }
 
 .status {
@@ -56,7 +55,6 @@
 }
 
 .actions {
-  margin-top: 20px;
   display: flex;
   gap: 10px;
   align-items: center;

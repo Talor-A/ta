@@ -376,11 +376,6 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
             {isLoading && <span>Saving...</span>}
           </div>
         </div>
-        <p className={`dimmer ${styles.help}`}>
-          Use <kbd>Cmd+B</kbd> for bold, <kbd>Cmd+I</kbd> for italic,{" "}
-          <kbd>Cmd+/</kbd> for comments. Select text and <kbd>Cmd+V</kbd> a URL
-          to create links.
-        </p>
       </div>
 
       <div>
@@ -419,7 +414,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
 
       <details>
         <summary
-          style={{ fontSize: "16px", cursor: "pointer", marginBottom: "10px" }}
+          style={{ fontSize: "16px", cursor: "pointer" }}
         >
           Bluesky Comments (Optional) {blueskyDid && blueskyPostCid && "✓"}
         </summary>

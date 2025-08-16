@@ -89,7 +89,7 @@ export async function action({
           .from(blogPosts)
           .where(eq(blogPosts.slug, newSlug))
           .get();
-        
+
         fieldsToUpdate.slug = existing ? `${newSlug}-${id}` : newSlug;
       }
 

@@ -93,6 +93,18 @@ code {
   /* font-size: 0.9em; */
 }
 
+pre {
+  display: block;
+  overflow-x: scroll;
+  background-color: var(--code-background-color);
+  padding: 1rem;
+}
+
+pre code {
+  background-color: none;
+  padding: 0;
+}
+
 blockquote {
   border-left: 3px solid var(--blockquote-color);
   padding-left: 1rem;

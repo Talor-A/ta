@@ -101,6 +101,26 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
         </div>
       </article>
 
+      {/* Bluesky Link Section */}
+      {post.publishedDate && post.blueskyDid && post.blueskyPostCid && (
+        <section
+          style={{
+            marginTop: "2rem",
+            paddingTop: "2rem",
+            borderTop: "1px solid #e5e5e5",
+          }}
+        >
+          <a
+            href={`https://bsky.app/profile/${post.blueskyDid}/post/${post.blueskyPostCid}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="link-plain"
+          >
+            Leave a comment on Bluesky
+          </a>
+        </section>
+      )}
+
       {/* Bluesky Comments */}
       {post.publishedDate && post.blueskyDid && post.blueskyPostCid && (
         <section

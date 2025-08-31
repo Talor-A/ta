@@ -363,6 +363,11 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   return (
     <main className={styles.main}>
       <div>
+        <div className={styles.backLink}>
+          <a aria-label="Back to blog" href="/blog" className="link-plain">
+            ←
+          </a>
+        </div>
         <div className={styles.header}>
           <h1>Blog Editor</h1>
           <div className={`${styles.status} dimmer`}>

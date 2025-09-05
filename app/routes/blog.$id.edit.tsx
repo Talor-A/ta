@@ -418,9 +418,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
       </div>
 
       <details>
-        <summary
-          style={{ fontSize: "16px", cursor: "pointer" }}
-        >
+        <summary style={{ fontSize: "16px", cursor: "pointer" }}>
           Bluesky Comments (Optional) {blueskyDid && blueskyPostCid && "✓"}
         </summary>
 

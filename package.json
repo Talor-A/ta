@@ -8,12 +8,12 @@
     "db:generate": "dotenv -- drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply --local DB",
     "db:migrate-production": "dotenv -- drizzle-kit migrate",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "bun run build && wrangler deploy",
     "dev": "react-router dev",
-    "postinstall": "npm run cf-typegen",
+    "postinstall": "bun run cf-typegen && bun run prettier --write worker-configuration.d.ts",
     "format": "prettier --write .",
-    "preview": "npm run build && vite preview",
-    "typecheck": "npm run cf-typegen && react-router typegen && tsc -b",
+    "preview": "bun run build && vite preview",
+    "typecheck": "bun run cf-typegen && react-router typegen && tsc -b",
     "wrangler": "wrangler"
   },
   "dependencies": {

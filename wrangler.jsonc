@@ -15,6 +15,12 @@
       "migrations_dir": "drizzle",
     },
   ],
+  "r2_buckets": [
+    {
+      "bucket_name": "blog-image-uploads",
+      "binding": "BLOG_IMAGE_UPLOADS"
+    }
+  ],
   "observability": {
     "logs": {
       "enabled": true,

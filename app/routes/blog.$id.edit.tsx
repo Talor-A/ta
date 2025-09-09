@@ -636,13 +636,32 @@ function useMarkdownTextArea(initialValue: string = "") {
     []
   );
 
-  const handlePaste = useCallback((e: ClipboardEvent) => {
+  const handlePaste = useCallback(async (e: ClipboardEvent) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
 
+    // Check for image files first
+    const files = Array.from(e.clipboardData?.files || []);
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+
+    if (imageFiles.length > 0) {
+      e.preventDefault();
+      
+      // Upload and insert each pasted image
+      for (const file of imageFiles) {
+        const imageUrl = await uploadImage(file);
+        if (imageUrl) {
+          const altText = file.name || 'pasted-image';
+          insertImageAtCursor(imageUrl, altText);
+        }
+      }
+      return;
+    }
+
+    // Handle text paste for URL → markdown conversion (existing functionality)
     // Only proceed if there's selected text
     if (start === end) return;
 
@@ -668,7 +687,7 @@ function useMarkdownTextArea(initialValue: string = "") {
         );
       });
     }
-  }, []);
+  }, [uploadImage, insertImageAtCursor]);
 
   const toggleBlockComment = useCallback(() => {
     const textarea = textareaRef.current;

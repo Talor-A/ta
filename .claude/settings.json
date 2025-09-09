@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path | xargs -r bun run prettier --write"
+            "command": "jq -r '.tool_input.file_path' | xargs -r bun run prettier --write"
           }
         ]
       }

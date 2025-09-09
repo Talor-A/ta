@@ -19,7 +19,7 @@ export default function Home() {
         product engineer at Replit. I care deeply about building tools to
         empower humans. My work has focused on transforming deeply complex
         systems into intuitive abstractions. Outside of work, I enjoy climbing,
-        weightlifting, biking, and lifting.
+        weightlifting, and biking.
       </p>
 
       <p>

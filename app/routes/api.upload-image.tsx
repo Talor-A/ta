@@ -16,19 +16,30 @@ export async function action({ request, context }: Route.ActionArgs) {
       return new Response("No file provided", { status: 400 });
     }
 
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+    ];
     if (!allowedTypes.includes(file.type)) {
-      return new Response("Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.", { 
-        status: 400 
-      });
+      return new Response(
+        "Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.",
+        {
+          status: 400,
+        }
+      );
     }
 
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
-      return new Response("File too large. Maximum size is 5MB.", { status: 400 });
+      return new Response("File too large. Maximum size is 5MB.", {
+        status: 400,
+      });
     }
 
-    const fileExtension = file.name.split('.').pop() || 'jpg';
+    const fileExtension = file.name.split(".").pop() || "jpg";
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExtension}`;
 
     const arrayBuffer = await file.arrayBuffer();
@@ -40,16 +51,18 @@ export async function action({ request, context }: Route.ActionArgs) {
       },
     });
 
-    return new Response(JSON.stringify({
-      success: true,
-      fileName,
-      url: `/api/images/${fileName}`
-    }), {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
+    return new Response(
+      JSON.stringify({
+        success: true,
+        fileName,
+        url: `/api/images/${fileName}`,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
   } catch (error) {
     if (error instanceof Response) {
       return error;

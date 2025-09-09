@@ -535,10 +535,10 @@ function useMarkdownTextArea(initialValue: string = "") {
     setIsUploading(true);
     try {
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append("image", file);
 
-      const response = await fetch('/api/upload-image', {
-        method: 'POST',
+      const response = await fetch("/api/upload-image", {
+        method: "POST",
         body: formData,
       });
 
@@ -549,69 +549,76 @@ function useMarkdownTextArea(initialValue: string = "") {
       const result = await response.json();
       return result.url;
     } catch (error) {
-      console.error('Image upload failed:', error);
-      alert('Image upload failed. Please try again.');
+      console.error("Image upload failed:", error);
+      alert("Image upload failed. Please try again.");
       return null;
     } finally {
       setIsUploading(false);
     }
   }, []);
 
-  const insertImageAtCursor = useCallback((imageUrl: string, altText: string = '') => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+  const insertImageAtCursor = useCallback(
+    (imageUrl: string, altText: string = "") => {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const beforeText = textarea.value.substring(0, start);
-    const afterText = textarea.value.substring(end);
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const beforeText = textarea.value.substring(0, start);
+      const afterText = textarea.value.substring(end);
 
-    const imageMarkdown = `![${altText}](${imageUrl})`;
-    
-    // Add newlines if we're inserting in the middle of text
-    const needsNewlineBefore = start > 0 && beforeText[beforeText.length - 1] !== '\n';
-    const needsNewlineAfter = afterText.length > 0 && afterText[0] !== '\n';
-    
-    const finalMarkdown = 
-      (needsNewlineBefore ? '\n' : '') + 
-      imageMarkdown + 
-      (needsNewlineAfter ? '\n' : '');
+      const imageMarkdown = `![${altText}](${imageUrl})`;
 
-    const newText = beforeText + finalMarkdown + afterText;
-    setContent(newText);
+      // Add newlines if we're inserting in the middle of text
+      const needsNewlineBefore =
+        start > 0 && beforeText[beforeText.length - 1] !== "\n";
+      const needsNewlineAfter = afterText.length > 0 && afterText[0] !== "\n";
 
-    // Set cursor after the inserted image
-    setTimeout(() => {
-      textarea.focus();
-      const newPosition = start + finalMarkdown.length;
-      textarea.setSelectionRange(newPosition, newPosition);
-    }, 0);
-  }, []);
+      const finalMarkdown =
+        (needsNewlineBefore ? "\n" : "") +
+        imageMarkdown +
+        (needsNewlineAfter ? "\n" : "");
+
+      const newText = beforeText + finalMarkdown + afterText;
+      setContent(newText);
+
+      // Set cursor after the inserted image
+      setTimeout(() => {
+        textarea.focus();
+        const newPosition = start + finalMarkdown.length;
+        textarea.setSelectionRange(newPosition, newPosition);
+      }, 0);
+    },
+    []
+  );
 
   const handleDragOver = useCallback((e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
   }, []);
 
-  const handleDrop = useCallback(async (e: DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDrop = useCallback(
+    async (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    const files = Array.from(e.dataTransfer?.files || []);
-    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+      const files = Array.from(e.dataTransfer?.files || []);
+      const imageFiles = files.filter((file) => file.type.startsWith("image/"));
 
-    if (imageFiles.length === 0) {
-      return; // No image files, let normal drop behavior proceed
-    }
-
-    for (const file of imageFiles) {
-      const imageUrl = await uploadImage(file);
-      if (imageUrl) {
-        const altText = file.name.replace(/\.[^/.]+$/, ''); // Remove extension for alt text
-        insertImageAtCursor(imageUrl, altText);
+      if (imageFiles.length === 0) {
+        return; // No image files, let normal drop behavior proceed
       }
-    }
-  }, [uploadImage, insertImageAtCursor]);
+
+      for (const file of imageFiles) {
+        const imageUrl = await uploadImage(file);
+        if (imageUrl) {
+          const altText = file.name.replace(/\.[^/.]+$/, ""); // Remove extension for alt text
+          insertImageAtCursor(imageUrl, altText);
+        }
+      }
+    },
+    [uploadImage, insertImageAtCursor]
+  );
 
   const wrapSelection = useCallback(
     (prefix: string, suffix: string = prefix) => {
@@ -636,58 +643,61 @@ function useMarkdownTextArea(initialValue: string = "") {
     []
   );
 
-  const handlePaste = useCallback(async (e: ClipboardEvent) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+  const handlePaste = useCallback(
+    async (e: ClipboardEvent) => {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
 
-    // Check for image files first
-    const files = Array.from(e.clipboardData?.files || []);
-    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+      // Check for image files first
+      const files = Array.from(e.clipboardData?.files || []);
+      const imageFiles = files.filter((file) => file.type.startsWith("image/"));
 
-    if (imageFiles.length > 0) {
-      e.preventDefault();
-      
-      // Upload and insert each pasted image
-      for (const file of imageFiles) {
-        const imageUrl = await uploadImage(file);
-        if (imageUrl) {
-          const altText = file.name || 'pasted-image';
-          insertImageAtCursor(imageUrl, altText);
+      if (imageFiles.length > 0) {
+        e.preventDefault();
+
+        // Upload and insert each pasted image
+        for (const file of imageFiles) {
+          const imageUrl = await uploadImage(file);
+          if (imageUrl) {
+            const altText = file.name || "pasted-image";
+            insertImageAtCursor(imageUrl, altText);
+          }
         }
+        return;
       }
-      return;
-    }
 
-    // Handle text paste for URL → markdown conversion (existing functionality)
-    // Only proceed if there's selected text
-    if (start === end) return;
+      // Handle text paste for URL → markdown conversion (existing functionality)
+      // Only proceed if there's selected text
+      if (start === end) return;
 
-    const selectedText = textarea.value.substring(start, end);
-    const pastedText = e.clipboardData?.getData("text") || "";
+      const selectedText = textarea.value.substring(start, end);
+      const pastedText = e.clipboardData?.getData("text") || "";
 
-    // Check if pasted text is a URL
-    if (isValidUrl(pastedText)) {
-      e.preventDefault();
+      // Check if pasted text is a URL
+      if (isValidUrl(pastedText)) {
+        e.preventDefault();
 
-      const beforeText = textarea.value.substring(0, start);
-      const afterText = textarea.value.substring(end);
-      const linkMarkdown = `[${selectedText}](${pastedText})`;
+        const beforeText = textarea.value.substring(0, start);
+        const afterText = textarea.value.substring(end);
+        const linkMarkdown = `[${selectedText}](${pastedText})`;
 
-      const newText = beforeText + linkMarkdown + afterText;
-      setContent(newText);
+        const newText = beforeText + linkMarkdown + afterText;
+        setContent(newText);
 
-      requestAnimationFrame(() => {
-        textarea.focus();
-        textarea.setSelectionRange(
-          start + linkMarkdown.length,
-          start + linkMarkdown.length
-        );
-      });
-    }
-  }, [uploadImage, insertImageAtCursor]);
+        requestAnimationFrame(() => {
+          textarea.focus();
+          textarea.setSelectionRange(
+            start + linkMarkdown.length,
+            start + linkMarkdown.length
+          );
+        });
+      }
+    },
+    [uploadImage, insertImageAtCursor]
+  );
 
   const toggleBlockComment = useCallback(() => {
     const textarea = textareaRef.current;
@@ -770,7 +780,13 @@ function useMarkdownTextArea(initialValue: string = "") {
         textarea.removeEventListener("drop", handleDrop);
       }
     };
-  }, [handlePaste, handleDragOver, handleDrop, wrapSelection, toggleBlockComment]);
+  }, [
+    handlePaste,
+    handleDragOver,
+    handleDrop,
+    wrapSelection,
+    toggleBlockComment,
+  ]);
 
   return { textareaRef, content, setContent, isUploading };
 }

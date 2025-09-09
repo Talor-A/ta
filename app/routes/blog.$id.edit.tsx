@@ -230,7 +230,7 @@ const isValidUrl = (string: string) => {
 
 export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   const fetcher = useFetcher<Awaited<ReturnType<typeof action>>>();
-  const { textareaRef, content, setContent } = useMarkdownTextArea(
+  const { textareaRef, content, setContent, isUploading } = useMarkdownTextArea(
     loaderData.post.body
   );
 
@@ -372,13 +372,14 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
           <h1>Blog Editor</h1>
           <div className={`${styles.status} dimmer`}>
             {isPublished && <span className={styles.published}>Published</span>}
-            {!isPublished && lastSaved && (
+            {isUploading && <span>Uploading image...</span>}
+            {!isPublished && !isUploading && lastSaved && (
               <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
             )}
-            {!isPublished && !lastSaved && !isLoading && (
+            {!isPublished && !isUploading && !lastSaved && !isLoading && (
               <span>Auto-saving drafts...</span>
             )}
-            {isLoading && <span>Saving...</span>}
+            {!isUploading && isLoading && <span>Saving...</span>}
           </div>
         </div>
       </div>
@@ -528,6 +529,89 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
 function useMarkdownTextArea(initialValue: string = "") {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [content, setContent] = useState(initialValue);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const uploadImage = useCallback(async (file: File) => {
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result.url;
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      alert('Image upload failed. Please try again.');
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  }, []);
+
+  const insertImageAtCursor = useCallback((imageUrl: string, altText: string = '') => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const beforeText = textarea.value.substring(0, start);
+    const afterText = textarea.value.substring(end);
+
+    const imageMarkdown = `![${altText}](${imageUrl})`;
+    
+    // Add newlines if we're inserting in the middle of text
+    const needsNewlineBefore = start > 0 && beforeText[beforeText.length - 1] !== '\n';
+    const needsNewlineAfter = afterText.length > 0 && afterText[0] !== '\n';
+    
+    const finalMarkdown = 
+      (needsNewlineBefore ? '\n' : '') + 
+      imageMarkdown + 
+      (needsNewlineAfter ? '\n' : '');
+
+    const newText = beforeText + finalMarkdown + afterText;
+    setContent(newText);
+
+    // Set cursor after the inserted image
+    setTimeout(() => {
+      textarea.focus();
+      const newPosition = start + finalMarkdown.length;
+      textarea.setSelectionRange(newPosition, newPosition);
+    }, 0);
+  }, []);
+
+  const handleDragOver = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback(async (e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const files = Array.from(e.dataTransfer?.files || []);
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+
+    if (imageFiles.length === 0) {
+      return; // No image files, let normal drop behavior proceed
+    }
+
+    for (const file of imageFiles) {
+      const imageUrl = await uploadImage(file);
+      if (imageUrl) {
+        const altText = file.name.replace(/\.[^/.]+$/, ''); // Remove extension for alt text
+        insertImageAtCursor(imageUrl, altText);
+      }
+    }
+  }, [uploadImage, insertImageAtCursor]);
 
   const wrapSelection = useCallback(
     (prefix: string, suffix: string = prefix) => {
@@ -653,6 +737,8 @@ function useMarkdownTextArea(initialValue: string = "") {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.addEventListener("paste", handlePaste);
+      textarea.addEventListener("dragover", handleDragOver);
+      textarea.addEventListener("drop", handleDrop);
     }
 
     document.addEventListener("keydown", handleKeyDown);
@@ -661,9 +747,11 @@ function useMarkdownTextArea(initialValue: string = "") {
       document.removeEventListener("keydown", handleKeyDown);
       if (textarea) {
         textarea.removeEventListener("paste", handlePaste);
+        textarea.removeEventListener("dragover", handleDragOver);
+        textarea.removeEventListener("drop", handleDrop);
       }
     };
-  }, []);
+  }, [handlePaste, handleDragOver, handleDrop, wrapSelection, toggleBlockComment]);
 
-  return { textareaRef, content, setContent };
+  return { textareaRef, content, setContent, isUploading };
 }

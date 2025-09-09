@@ -9,6 +9,7 @@ export default [
   route("api/auth/*", "routes/api.auth.$.tsx"),
   route("api/upload-image", "routes/api.upload-image.tsx"),
   route("api/images/:filename", "routes/api.images.$filename.tsx"),
+  route("images", "routes/images.tsx"),
   route("blog", "routes/blog.tsx"),
   route("blog/drafts", "routes/blog.drafts.tsx"),
   route("blog/new", "routes/blog.new.tsx"),

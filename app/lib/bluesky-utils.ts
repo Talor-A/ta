@@ -37,7 +37,7 @@ export async function resolveBlueskyHandle(
       return null;
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as { did: string };
     return data.did;
   } catch {
     return null;

@@ -259,12 +259,13 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const isPublished = !!loaderData.post.publishedDate;
 
-  const handleBlueskyUrlConvert = async () => {
-    if (!blueskyUrl.trim()) return;
+  const handleBlueskyUrlConvert = async (urlToConvert?: string) => {
+    const url = urlToConvert || blueskyUrl;
+    if (!url.trim()) return;
 
     setIsConverting(true);
     try {
-      const result = await convertBlueskyUrl(blueskyUrl);
+      const result = await convertBlueskyUrl(url);
       if (result) {
         setBlueskyDid(result.did);
         setBlueskyPostCid(result.cid);
@@ -278,6 +279,15 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
       alert("Failed to convert URL. Please check the URL and try again.");
     } finally {
       setIsConverting(false);
+    }
+  };
+
+  const handleBlueskyUrlChange = async (value: string) => {
+    setBlueskyUrl(value);
+
+    // Auto-convert if it looks like a complete Bluesky URL
+    if (value.match(/^https:\/\/bsky\.app\/profile\/[^\/]+\/post\/[^\/]+$/)) {
+      await handleBlueskyUrlConvert(value);
     }
   };
 
@@ -428,13 +438,13 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
             <input
               type="url"
               value={blueskyUrl}
-              onChange={(e) => setBlueskyUrl(e.target.value)}
+              onChange={(e) => handleBlueskyUrlChange(e.target.value)}
               placeholder="https://bsky.app/profile/handle/post/cid"
               style={{ fontSize: "14px", flex: "1" }}
             />
             <button
               type="button"
-              onClick={handleBlueskyUrlConvert}
+              onClick={() => handleBlueskyUrlConvert()}
               disabled={isConverting || !blueskyUrl.trim()}
               style={{
                 fontSize: "12px",

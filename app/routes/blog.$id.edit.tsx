@@ -7,7 +7,7 @@ import { blogPosts } from "../../database/schema";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../lib/auth-utils";
 import { convertBlueskyUrl } from "../lib/bluesky-utils";
-import TurndownService from "turndown";
+import { NodeHtmlMarkdown } from "node-html-markdown";
 
 export async function loader({ context, request, params }: Route.LoaderArgs) {
   await requireAuth(request);
@@ -782,24 +782,8 @@ function useMarkdownTextArea(initialValue: string = "") {
       if (htmlContent) {
         e.preventDefault();
 
-        // Convert HTML to Markdown using Turndown
-        const turndownService = new TurndownService({
-          headingStyle: "atx",
-          codeBlockStyle: "fenced",
-          bulletListMarker: "-",
-          strongDelimiter: "**",
-          emDelimiter: "*",
-        });
-
-        // Add custom rules for better conversion
-        turndownService.addRule("strikethrough", {
-          filter: ["del", "s"],
-          replacement: function (content) {
-            return "~~" + content + "~~";
-          },
-        });
-
-        const markdown = turndownService.turndown(htmlContent);
+        // Convert HTML to Markdown using node-html-markdown
+        const markdown = NodeHtmlMarkdown.translate(htmlContent);
 
         const beforeText = textarea.value.substring(0, start);
         const afterText = textarea.value.substring(end);

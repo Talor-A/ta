@@ -61,6 +61,7 @@ export async function action({
   const title = formData.get("title") as string | null;
   const body = formData.get("body") as string | null;
   const slug = formData.get("slug") as string | null;
+  const url = formData.get("url") as string | null;
   const blueskyDid = formData.get("blueskyDid") as string | null;
   const blueskyPostCid = formData.get("blueskyPostCid") as string | null;
 
@@ -85,6 +86,7 @@ export async function action({
       title?: string;
       body?: string;
       slug?: string;
+      url?: string | null;
       blueskyDid?: string | null;
       blueskyPostCid?: string | null;
     } = {};
@@ -115,6 +117,19 @@ export async function action({
       fieldsToUpdate.slug = slugify(slug);
     }
 
+    if (url !== null && url.trim() !== "") {
+      const normalizedUrl = normalizeUrl(url.trim());
+      if (normalizedUrl && isValidUrl(normalizedUrl)) {
+        fieldsToUpdate.url = normalizedUrl;
+      } else {
+        return {
+          error: "Invalid URL format. Please use a valid HTTP/HTTPS URL.",
+        };
+      }
+    } else if (url !== null && url.trim() === "") {
+      fieldsToUpdate.url = null;
+    }
+
     if (blueskyDid !== null && blueskyDid.trim() !== "") {
       fieldsToUpdate.blueskyDid = blueskyDid;
     } else if (blueskyDid !== null && blueskyDid.trim() === "") {
@@ -139,6 +154,7 @@ export async function action({
       title?: string;
       body?: string;
       slug?: string;
+      url?: string | null;
       blueskyDid?: string | null;
       blueskyPostCid?: string | null;
     } = {};
@@ -151,6 +167,18 @@ export async function action({
     }
     if (!!slug) {
       fieldsToUpdate.slug = slugify(slug);
+    }
+    if (url !== null && url.trim() !== "") {
+      const normalizedUrl = normalizeUrl(url.trim());
+      if (normalizedUrl && isValidUrl(normalizedUrl)) {
+        fieldsToUpdate.url = normalizedUrl;
+      } else {
+        return {
+          error: "Invalid URL format. Please use a valid HTTP/HTTPS URL.",
+        };
+      }
+    } else if (url !== null && url.trim() === "") {
+      fieldsToUpdate.url = null;
     }
     if (blueskyDid !== null && blueskyDid.trim() !== "") {
       fieldsToUpdate.blueskyDid = blueskyDid;
@@ -221,10 +249,23 @@ export function meta({}: Route.MetaArgs) {
 }
 const isValidUrl = (string: string) => {
   try {
-    new URL(string);
-    return true;
+    const url = new URL(string);
+    return url.protocol === "http:" || url.protocol === "https:";
   } catch (_) {
     return false;
+  }
+};
+
+const normalizeUrl = (string: string) => {
+  try {
+    // Add https:// if no protocol is provided
+    if (!string.match(/^https?:\/\//)) {
+      string = "https://" + string;
+    }
+    const url = new URL(string);
+    return url.toString();
+  } catch (_) {
+    return null;
   }
 };
 
@@ -247,6 +288,8 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
 
   const [title, setTitle] = useState(loaderData.post.title);
   const [slug, setSlug] = useState(loaderData.post.slug);
+  const [url, setUrl] = useState(loaderData.post.url || "");
+  const [urlError, setUrlError] = useState("");
   const [blueskyDid, setBlueskyDid] = useState(
     loaderData.post.blueskyDid || ""
   );
@@ -331,6 +374,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
     formData.append("title", title);
     formData.append("body", content);
     formData.append("slug", slug);
+    formData.append("url", url);
     formData.append("blueskyDid", blueskyDid);
     formData.append("blueskyPostCid", blueskyPostCid);
 
@@ -426,6 +470,59 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
           className="dimmer"
           style={{ fontSize: "14px" }}
         />
+        <input
+          type="url"
+          value={url}
+          onChange={(e) => {
+            const value = e.target.value;
+            setUrl(value);
+
+            // Clear error if input is empty
+            if (!value.trim()) {
+              setUrlError("");
+              return;
+            }
+
+            // Validate URL
+            const normalizedUrl = normalizeUrl(value.trim());
+            if (!normalizedUrl || !isValidUrl(normalizedUrl)) {
+              setUrlError("Invalid URL format");
+            } else {
+              setUrlError("");
+            }
+          }}
+          onBlur={() => {
+            if (!urlError && url.trim()) {
+              fetcher.submit(
+                { intent: "autosave" satisfies Intent, url },
+                { method: "post" }
+              );
+            } else if (!url.trim()) {
+              fetcher.submit(
+                { intent: "autosave" satisfies Intent, url: "" },
+                { method: "post" }
+              );
+            }
+          }}
+          placeholder="External URL (for linkblog posts)"
+          className="dimmer"
+          style={{
+            fontSize: "14px",
+            marginTop: "8px",
+            borderColor: urlError ? "red" : undefined,
+          }}
+        />
+        {urlError && (
+          <div
+            style={{
+              fontSize: "12px",
+              color: "red",
+              marginTop: "4px",
+            }}
+          >
+            {urlError}
+          </div>
+        )}
       </div>
 
       <details>

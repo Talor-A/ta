@@ -25,6 +25,7 @@ export const blogPosts = sqliteTable("blogPosts", {
   publishedDate: integer(),
   blueskyDid: text(),
   blueskyPostCid: text(),
+  url: text(),
 });
 
 // Better-auth tables

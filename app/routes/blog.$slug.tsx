@@ -51,6 +51,12 @@ function preprocessMarkdown(markdown: string): string {
     .replace(/\\\*/g, "*");
 }
 
+function normalizeUrl(url: string): string {
+  if (!url) return url;
+  if (url.match(/^https?:\/\//)) return url;
+  return `https://${url}`;
+}
+
 export default function BlogPost({ loaderData }: Route.ComponentProps) {
   const { post, session } = loaderData;
 
@@ -68,7 +74,18 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
               ← Back to Blog
               <span className="dimmer"> | </span>
             </a>
-            <span role="h1">{post.title}</span>
+            {post.url ? (
+              <a
+                href={normalizeUrl(post.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                role="h1"
+              >
+                {post.title}
+              </a>
+            ) : (
+              <span role="h1">{post.title}</span>
+            )}
           </h1>
           <span className="dimmer" style={{ fontSize: "0.9em" }}>
             {post.publishedDate ? (
@@ -98,7 +115,9 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
         </header>
 
         <div>
-          <Markdown remarkPlugins={[remarkGfm]}>{preprocessMarkdown(post.body)}</Markdown>
+          <Markdown remarkPlugins={[remarkGfm]}>
+            {preprocessMarkdown(post.body)}
+          </Markdown>
         </div>
       </article>
 

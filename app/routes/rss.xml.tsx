@@ -2,6 +2,12 @@ import type { Route } from "./+types/rss.xml";
 import { blogPosts } from "../../database/schema";
 import { isNotNull } from "drizzle-orm";
 
+function normalizeUrl(url: string): string {
+  if (!url) return url;
+  if (url.match(/^https?:\/\//)) return url;
+  return `https://${url}`;
+}
+
 export async function loader({ context }: Route.LoaderArgs) {
   const posts = await context.db
     .select({
@@ -10,6 +16,7 @@ export async function loader({ context }: Route.LoaderArgs) {
       title: blogPosts.title,
       body: blogPosts.body,
       publishedDate: blogPosts.publishedDate,
+      url: blogPosts.url,
     })
     .from(blogPosts)
     .where(isNotNull(blogPosts.publishedDate))
@@ -30,12 +37,21 @@ export async function loader({ context }: Route.LoaderArgs) {
         .substring(0, 200)
         .trim();
 
+      // For linkblog posts (posts with external URLs), format title as a link in the description
+      const rssTitle = post.url
+        ? post.title // Keep title plain in RSS title element
+        : post.title;
+
+      const rssDescription = post.url
+        ? `<p><strong><a href="${normalizeUrl(post.url)}">${post.title}</a></strong></p>\n\n${description}${description.length >= 200 ? "..." : ""}`
+        : `${description}${description.length >= 200 ? "..." : ""}`;
+
       return `    <item>
-      <title><![CDATA[${post.title}]]></title>
+      <title><![CDATA[${rssTitle}]]></title>
       <link>${baseUrl}/blog/${post.slug}</link>
       <guid>${baseUrl}/blog/${post.slug}</guid>
       <pubDate>${pubDate}</pubDate>
-      <description><![CDATA[${description}${description.length >= 200 ? "..." : ""}]]></description>
+      <description><![CDATA[${rssDescription}]]></description>
     </item>`;
     })
     .join("\n");

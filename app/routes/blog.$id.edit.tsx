@@ -7,6 +7,7 @@ import { blogPosts } from "../../database/schema";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../lib/auth-utils";
 import { convertBlueskyUrl } from "../lib/bluesky-utils";
+import TurndownService from "turndown";
 
 export async function loader({ context, request, params }: Route.LoaderArgs) {
   await requireAuth(request);
@@ -653,7 +654,7 @@ function useMarkdownTextArea(initialValue: string = "") {
         throw new Error(`Upload failed: ${response.statusText}`);
       }
 
-      const result = await response.json();
+      const result = (await response.json()) as { url: string };
       return result.url;
     } catch (error) {
       console.error("Image upload failed:", error);
@@ -773,6 +774,44 @@ function useMarkdownTextArea(initialValue: string = "") {
             insertImageAtCursor(imageUrl, altText);
           }
         }
+        return;
+      }
+
+      // Check for HTML content (rich text)
+      const htmlContent = e.clipboardData?.getData("text/html");
+      if (htmlContent) {
+        e.preventDefault();
+
+        // Convert HTML to Markdown using Turndown
+        const turndownService = new TurndownService({
+          headingStyle: "atx",
+          codeBlockStyle: "fenced",
+          bulletListMarker: "-",
+          strongDelimiter: "**",
+          emDelimiter: "*",
+        });
+
+        // Add custom rules for better conversion
+        turndownService.addRule("strikethrough", {
+          filter: ["del", "s"],
+          replacement: function (content) {
+            return "~~" + content + "~~";
+          },
+        });
+
+        const markdown = turndownService.turndown(htmlContent);
+
+        const beforeText = textarea.value.substring(0, start);
+        const afterText = textarea.value.substring(end);
+        const newText = beforeText + markdown + afterText;
+        setContent(newText);
+
+        // Set cursor position after the inserted markdown
+        requestAnimationFrame(() => {
+          textarea.focus();
+          const newPosition = start + markdown.length;
+          textarea.setSelectionRange(newPosition, newPosition);
+        });
         return;
       }
 

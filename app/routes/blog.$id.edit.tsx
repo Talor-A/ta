@@ -890,6 +890,62 @@ function useMarkdownTextArea(initialValue: string = "") {
             toggleBlockComment();
             break;
         }
+        return;
+      }
+
+      // Blockquote selection when typing ">"
+      if (
+        e.key === ">" &&
+        !e.altKey &&
+        document.activeElement === textareaRef.current &&
+        textareaRef.current
+      ) {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+
+        if (start !== end) {
+          e.preventDefault();
+
+          const value = textarea.value;
+
+          const lineStartPos = value.lastIndexOf("\n", start - 1) + 1;
+          const nextNewline = value.indexOf("\n", end);
+          const lineEndPos = nextNewline === -1 ? value.length : nextNewline;
+
+          const block = value.slice(lineStartPos, lineEndPos);
+          const lines = block.split("\n");
+          const prefixed = lines.map((line) => `> ${line}`).join("\n");
+
+          // Replace the entire spanned lines so each gets a "> " prefix
+          textarea.focus();
+          textarea.setSelectionRange(lineStartPos, lineEndPos);
+
+          let usedExec = false;
+          try {
+            usedExec = document.execCommand("insertText", false, prefixed);
+          } catch {}
+
+          if (!usedExec) {
+            // Fallback: setRangeText + dispatch input so React updates state
+            textarea.setRangeText(
+              prefixed,
+              lineStartPos,
+              lineEndPos,
+              "preserve"
+            );
+            textarea.dispatchEvent(new Event("input", { bubbles: true }));
+          }
+
+          // Restore selection to original logical range (excluding added prefixes)
+          requestAnimationFrame(() => {
+            const lineCount = lines.length;
+            const newStart = start + 2; // account for first line prefix
+            const newEnd = end + 2 * lineCount; // account for all prefixed lines
+            textarea.setSelectionRange(newStart, newEnd);
+          });
+        }
       }
     };
 

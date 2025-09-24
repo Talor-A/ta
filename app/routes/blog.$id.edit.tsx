@@ -7,7 +7,7 @@ import { blogPosts } from "../../database/schema";
 import { eq } from "drizzle-orm";
 import { requireAuth } from "../lib/auth-utils";
 import { convertBlueskyUrl } from "../lib/bluesky-utils";
-import { NodeHtmlMarkdown } from "node-html-markdown";
+import { NodeHtmlMarkdown } from "node-html-markdown-cloudflare";
 
 export async function loader({ context, request, params }: Route.LoaderArgs) {
   await requireAuth(request);

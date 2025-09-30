@@ -3,6 +3,7 @@ import { blogPosts } from "../../database/schema";
 import { eq, isNotNull, and } from "drizzle-orm";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import styles from "./blog.$slug.module.css";
 import { getOptionalAuth } from "~/lib/auth-utils";
 import BlueskyComments from "~/components/BlueskyComments";
@@ -115,7 +116,7 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
         </header>
 
         <div>
-          <Markdown remarkPlugins={[remarkGfm]}>
+          <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
             {preprocessMarkdown(post.body)}
           </Markdown>
         </div>

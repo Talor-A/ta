@@ -46,6 +46,10 @@ export default function Home() {
           href="https://www.linkedin.com/in/taloranderson/"
         >
           LinkedIn
+        </a>{" "}
+        •{" "}
+        <a className="link-underline" href="https://www.are.na/talor-anderson/">
+          Are.na
         </a>
       </p>
     </main>

@@ -8,7 +8,7 @@ function normalizeUrl(url: string): string {
   return `https://${url}`;
 }
 
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ context, request }: Route.LoaderArgs) {
   const posts = await context.db
     .select({
       id: blogPosts.id,
@@ -22,7 +22,7 @@ export async function loader({ context }: Route.LoaderArgs) {
     .where(isNotNull(blogPosts.publishedDate))
     .orderBy(blogPosts.publishedDate);
 
-  const baseUrl = "https://taloranderson.com";
+  const baseUrl = new URL(request.url).origin;
   const buildDate = new Date().toUTCString();
 
   const rssItems = posts

@@ -72,6 +72,10 @@ h6 {
   font-weight: bold;
 }
 
+.post h1,.post h2 {
+  font-size: 1.3rem;
+}
+
 a {
   color: var(--link-color);
   text-decoration: none;

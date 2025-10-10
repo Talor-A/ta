@@ -68,7 +68,7 @@ export default function BlogPost({ loaderData }: Route.ComponentProps) {
           ←
         </a>
       </div>
-      <article>
+      <article className="post">
         <header className="mb-2">
           <h1 role="none">
             <a href="/blog" className={`${styles.inlineBackLink} link-plain`}>

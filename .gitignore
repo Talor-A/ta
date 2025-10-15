@@ -11,3 +11,7 @@
 .wrangler
 .env
 /.playwright-mcp/
+playwright@latest
+playwright/.cache
+playwright-report
+test-results

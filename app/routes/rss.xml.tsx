@@ -32,10 +32,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
         : "";
 
       // Simple text content extraction for description
-      const description = post.body
-        .replace(/[#*_`~\[\]()]/g, "")
-        .substring(0, 200)
-        .trim();
+      const description = post.body.replace(/[#*_`~\[\]()]/g, "").trim();
 
       // For linkblog posts (posts with external URLs), format title as a link in the description
       const rssTitle = post.url
@@ -43,8 +40,8 @@ export async function loader({ context, request }: Route.LoaderArgs) {
         : post.title;
 
       const rssDescription = post.url
-        ? `<p><strong><a href="${normalizeUrl(post.url)}">${post.title}</a></strong></p>\n\n${description}${description.length >= 200 ? "..." : ""}`
-        : `${description}${description.length >= 200 ? "..." : ""}`;
+        ? `<p><strong><a href="${normalizeUrl(post.url)}">${post.title}</a></strong></p>\n\n${description}`
+        : description;
 
       return `    <item>
       <title><![CDATA[${rssTitle}]]></title>

@@ -1,11 +1,35 @@
 import type { Route } from "./+types/rss.xml";
 import { blogPosts } from "../../database/schema";
 import { isNotNull } from "drizzle-orm";
+import { unified } from "unified";
+import remarkParse from "remark-parse";
+import remarkGfm from "remark-gfm";
+import remarkRehype from "remark-rehype";
+import rehypeStringify from "rehype-stringify";
 
 function normalizeUrl(url: string): string {
   if (!url) return url;
   if (url.match(/^https?:\/\//)) return url;
   return `https://${url}`;
+}
+
+function preprocessMarkdown(markdown: string): string {
+  return markdown;
+  // .replace(/\\n/g, "\n")
+  // .replace(/\\!/g, "!")
+  // .replace(/\\\*/g, "*");
+}
+
+async function markdownToHtml(markdown: string): Promise<string> {
+  const preprocessed = preprocessMarkdown(markdown);
+  const result = await unified()
+    .use(remarkParse)
+    .use(remarkGfm)
+    .use(remarkRehype, { allowDangerousHtml: true })
+    .use(rehypeStringify, { allowDangerousHtml: true })
+    .process(preprocessed);
+
+  return String(result);
 }
 
 export async function loader({ context, request }: Route.LoaderArgs) {
@@ -25,14 +49,15 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   const baseUrl = new URL(request.url).origin;
   const buildDate = new Date().toUTCString();
 
-  const rssItems = posts
-    .map((post) => {
+  // Convert markdown to HTML for all posts
+  const rssItems = await Promise.all(
+    posts.map(async (post) => {
       const pubDate = post.publishedDate
         ? new Date(post.publishedDate * 1000).toUTCString()
         : "";
 
-      // Simple text content extraction for description
-      const description = post.body.replace(/[#*_`~\[\]()]/g, "").trim();
+      // Convert markdown to HTML
+      const htmlContent = await markdownToHtml(post.body);
 
       // For linkblog posts (posts with external URLs), format title as a link in the description
       const rssTitle = post.url
@@ -40,8 +65,8 @@ export async function loader({ context, request }: Route.LoaderArgs) {
         : post.title;
 
       const rssDescription = post.url
-        ? `<p><strong><a href="${normalizeUrl(post.url)}">${post.title}</a></strong></p>\n\n${description}`
-        : description;
+        ? `<p><strong><a href="${normalizeUrl(post.url)}">${post.title}</a></strong></p>\n\n${htmlContent}`
+        : htmlContent;
 
       return `    <item>
       <title><![CDATA[${rssTitle}]]></title>
@@ -51,7 +76,9 @@ export async function loader({ context, request }: Route.LoaderArgs) {
       <description><![CDATA[${rssDescription}]]></description>
     </item>`;
     })
-    .join("\n");
+  );
+
+  const rssItemsString = rssItems.join("\n");
 
   const rssContent = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
@@ -62,7 +89,7 @@ export async function loader({ context, request }: Route.LoaderArgs) {
     <language>en-us</language>
     <lastBuildDate>${buildDate}</lastBuildDate>
     <atom:link href="${baseUrl}/rss.xml" rel="self" type="application/rss+xml"/>
-${rssItems}
+${rssItemsString}
   </channel>
 </rss>`;
 

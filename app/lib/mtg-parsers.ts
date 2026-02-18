@@ -7,6 +7,7 @@ export interface ParsedCard {
   condition: string;
   language: string;
   foil: string;
+  collectorNumber?: string;
 }
 
 export interface ParseResult {
@@ -26,6 +27,7 @@ const CONDITION_MAP: Record<string, string> = {
   "Lightly Played": "Lightly Played",
   LP: "Lightly Played",
   SP: "Lightly Played",
+  "Slightly Played": "Lightly Played",
   "Moderate Play": "Played",
   "Moderately Played": "Played",
   Played: "Played",
@@ -37,6 +39,7 @@ const CONDITION_MAP: Record<string, string> = {
   DMG: "Damaged",
   D: "Damaged",
   DM: "Damaged",
+  Poor: "Damaged",
 };
 
 // Build a case-insensitive set name → code lookup
@@ -123,6 +126,14 @@ export function parseBruteForce(text: string): ParseResult {
     let cardName = cleanCardPart.substring(0, lastCommaIndex).trim();
     const setName = cleanCardPart.substring(lastCommaIndex + 1).trim();
 
+    // Strip collector numbers in parentheses, e.g. "Island (270)" → "Island"
+    let collectorNumber: string | undefined;
+    const collectorMatch = cardName.match(/^(.+?)\s*\((\d+)\)$/);
+    if (collectorMatch) {
+      cardName = collectorMatch[1].trim();
+      collectorNumber = collectorMatch[2];
+    }
+
     const variantMatch = cardName.match(
       / - (Extended Art|Borderless|Showcase|Retro Frame|Full Art|Prerelease Promo)$/i
     );
@@ -137,6 +148,7 @@ export function parseBruteForce(text: string): ParseResult {
       condition,
       language,
       foil: isFoil ? "foil" : "",
+      ...(collectorNumber && { collectorNumber }),
     });
   }
 
@@ -254,9 +266,10 @@ export function parseCardTrader(text: string): ParseResult {
     .filter((l) => l);
 
   for (const line of lines) {
-    // Format: 1x Card Name (Set Name) - 84 - Near Mint - EN
+    // Format: 1x Card Name (Set Name) - 84 - Near Mint - EN [- Foil]
+    // Collector number may be empty (e.g. "- -")
     const match = line.match(
-      /^(\d+)x\s+(.+?)\s+\(([^)]+)\)\s+-\s+(\d+)\s+-\s+([^-]+?)\s+-\s+(\w+)$/
+      /^(\d+)x\s+(.+?)\s+\(([^)]+)\)\s+-\s*(\d*)\s*-\s+(.+?)\s+-\s+(\w+)(?:\s+-\s+(.+))?$/
     );
     if (!match) {
       errors.push(`Could not parse: ${line.substring(0, 60)}...`);
@@ -269,8 +282,9 @@ export function parseCardTrader(text: string): ParseResult {
     const condition = CONDITION_MAP[match[5].trim()] || match[5].trim();
     const language =
       LANGUAGE_MAP[match[6].trim().toUpperCase()] || match[6].trim();
+    const extra = match[7]?.trim() || "";
 
-    const isFoil = /\bfoil\b/i.test(name);
+    const isFoil = /\bfoil\b/i.test(name) || /\bfoil\b/i.test(extra);
 
     cards.push({
       count,
@@ -306,7 +320,7 @@ export function generateMoxfieldCSV(cards: ParsedCard[]): string {
     card.condition,
     card.language,
     card.foil,
-    "",
+    card.collectorNumber || "",
     "",
     "",
     "",

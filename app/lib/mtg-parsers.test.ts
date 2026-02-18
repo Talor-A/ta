@@ -77,6 +77,27 @@ describe("parseBruteForce", () => {
     expect(cards[1].language).toBe("Japanese");
   });
 
+  it("strips collector numbers in parentheses from card names", () => {
+    const input = `- 3x Island (270), Innistrad: Crimson Vow
+  Condition: Near Mint | Language: English, $1.50
+- 1x Island (270) - Foil, Innistrad: Crimson Vow
+  Condition: Near Mint | Language: English, $0.99
+- 4x Island (271), Innistrad: Midnight Hunt
+  Condition: Near Mint | Language: English, $1.96`;
+    const { cards, errors } = parseBruteForce(input);
+    expect(errors).toEqual([]);
+    expect(cards).toHaveLength(3);
+    expect(cards[0].name).toBe("Island");
+    expect(cards[0].edition).toBe("vow");
+    expect(cards[0].collectorNumber).toBe("270");
+    expect(cards[1].name).toBe("Island");
+    expect(cards[1].foil).toBe("foil");
+    expect(cards[1].collectorNumber).toBe("270");
+    expect(cards[2].name).toBe("Island");
+    expect(cards[2].edition).toBe("mid");
+    expect(cards[2].collectorNumber).toBe("271");
+  });
+
   it("reports errors for malformed entries", () => {
     const input = `- no quantity here, Some Set
   Condition: Near Mint | Language: English, $1.00`;
@@ -177,6 +198,35 @@ describe("parseCardTrader", () => {
     expect(cards[1].count).toBe(2);
     expect(cards[1].condition).toBe("Heavily Played");
     expect(cards[1].language).toBe("French");
+  });
+
+  it("parses lines with trailing Foil flag", () => {
+    const input = `1x Jackdaw Savior (Bloomburrow) - 018 - Near Mint - EN - Foil`;
+    const { cards, errors } = parseCardTrader(input);
+    expect(errors).toEqual([]);
+    expect(cards[0].name).toBe("Jackdaw Savior");
+    expect(cards[0].foil).toBe("foil");
+  });
+
+  it("handles empty collector number", () => {
+    const input = `1x Diregraf Horde (The List - Mystery Booster 2) - - Near Mint - EN`;
+    const { cards, errors } = parseCardTrader(input);
+    expect(errors).toEqual([]);
+    expect(cards[0].name).toBe("Diregraf Horde");
+  });
+
+  it("maps Slightly Played to Lightly Played", () => {
+    const input = `1x Faerie Vandal (Throne of Eldraine) - 045 - Slightly Played - EN`;
+    const { cards } = parseCardTrader(input);
+    expect(cards[0].condition).toBe("Lightly Played");
+  });
+
+  it("handles set names with colons", () => {
+    const input = `1x Wayta, Trainer Prodigy (Commander: The Lost Caverns of Ixalan) - 007 - Near Mint - EN - Foil`;
+    const { cards, errors } = parseCardTrader(input);
+    expect(errors).toEqual([]);
+    expect(cards[0].name).toBe("Wayta, Trainer Prodigy");
+    expect(cards[0].foil).toBe("foil");
   });
 
   it("reports errors for malformed lines", () => {

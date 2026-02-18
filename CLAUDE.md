@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+This is a site deployed at taloranderson.com.
+
 ## Project Architecture
 
 This is a React Router v7 application deployed on Cloudflare Workers with the following stack:
@@ -109,6 +111,8 @@ export async function loader({ context }: Route.LoaderArgs) {
 - **React Router**: `react-router.config.ts` - SSR and prerendering configuration
 
 ## Development Notes
+
+- After adding a new route, the dev server may show SSR errors on first load. A browser reload fixes it.
 
 - The database requires proper setup in `wrangler.jsonc` and `drizzle.config.ts` with actual Cloudflare database IDs
 - Environment variables needed: `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_TOKEN`

@@ -16,4 +16,5 @@ export default [
   route("blog/:id/edit", "routes/blog.$id.edit.tsx"),
   route("blog/:slug", "routes/blog.$slug.tsx"),
   route("rss.xml", "routes/rss.xml.tsx"),
+  route("mtg-importer", "routes/mtg-importer.tsx"),
 ] satisfies RouteConfig;

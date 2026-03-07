@@ -107,6 +107,7 @@ export default function MtgImporter() {
           order
         </label>
         <textarea
+          autoFocus
           value={input}
           onChange={(e) => setInput(e.target.value)}
           rows={10}
@@ -155,6 +156,7 @@ export default function MtgImporter() {
               Parsed Cards ({parsed.reduce((sum, c) => sum + c.count, 0)} total)
             </h2>
             <button
+              ref={(elt) => elt?.focus()}
               onClick={downloadCSV}
               style={{
                 padding: "8px 16px",

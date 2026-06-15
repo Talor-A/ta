@@ -49,6 +49,205 @@ function slugify(title: string): string {
     .replace(/^-+/, "");
 }
 
+const isValidUrl = (string: string) => {
+  try {
+    const url = new URL(string);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch (_) {
+    return false;
+  }
+};
+
+const normalizeUrl = (string: string) => {
+  try {
+    if (!string.match(/^https?:\/\//)) {
+      string = "https://" + string;
+    }
+    const url = new URL(string);
+    return url.toString();
+  } catch (_) {
+    return null;
+  }
+};
+
+type PostFieldsUpdate = {
+  title?: string;
+  body?: string;
+  slug?: string;
+  url?: string | null;
+  blueskyDid?: string | null;
+  blueskyPostCid?: string | null;
+};
+
+type ActionResult = { error: string } | { success: true; message: string };
+
+function applyUrlField(
+  fieldsToUpdate: PostFieldsUpdate,
+  url: string | null
+): ActionResult | null {
+  if (url !== null && url.trim() !== "") {
+    const normalizedUrl = normalizeUrl(url.trim());
+    if (normalizedUrl && isValidUrl(normalizedUrl)) {
+      fieldsToUpdate.url = normalizedUrl;
+    } else {
+      return {
+        error: "Invalid URL format. Please use a valid HTTP/HTTPS URL.",
+      };
+    }
+  } else if (url !== null && url.trim() === "") {
+    fieldsToUpdate.url = null;
+  }
+  return null;
+}
+
+function applyBlueskyFields(
+  fieldsToUpdate: PostFieldsUpdate,
+  blueskyDid: string | null,
+  blueskyPostCid: string | null
+) {
+  if (blueskyDid !== null && blueskyDid.trim() !== "") {
+    fieldsToUpdate.blueskyDid = blueskyDid;
+  } else if (blueskyDid !== null && blueskyDid.trim() === "") {
+    fieldsToUpdate.blueskyDid = null;
+  }
+
+  if (blueskyPostCid !== null && blueskyPostCid.trim() !== "") {
+    fieldsToUpdate.blueskyPostCid = blueskyPostCid;
+  } else if (blueskyPostCid !== null && blueskyPostCid.trim() === "") {
+    fieldsToUpdate.blueskyPostCid = null;
+  }
+}
+
+async function handleAutosave(
+  db: Route.ActionArgs["context"]["db"],
+  id: number,
+  title: string | null,
+  body: string | null,
+  slug: string | null,
+  url: string | null,
+  blueskyDid: string | null,
+  blueskyPostCid: string | null
+): Promise<ActionResult> {
+  const post = await db
+    .select()
+    .from(blogPosts)
+    .where(eq(blogPosts.id, id))
+    .get();
+  if (!post) {
+    return { error: "Post not found" };
+  }
+  if (post.publishedDate) {
+    return { error: "Cannot autosave a published post" };
+  }
+
+  const fieldsToUpdate: PostFieldsUpdate = {};
+
+  if (body !== null) {
+    fieldsToUpdate.body = body;
+    if (!post.slug || post.slug.startsWith("draft-")) {
+      const newSlug = slugify(title || "draft");
+      const existing = await db
+        .select()
+        .from(blogPosts)
+        .where(eq(blogPosts.slug, newSlug))
+        .get();
+
+      fieldsToUpdate.slug = existing ? `${newSlug}-${id}` : newSlug;
+    }
+
+    if (!post.title) {
+      fieldsToUpdate.title = body.split("\n")[0]?.trim() || "Untitled Draft";
+    }
+  }
+
+  if (title !== null) {
+    fieldsToUpdate.title = title;
+  }
+
+  if (!!slug) {
+    fieldsToUpdate.slug = slugify(slug);
+  }
+
+  const urlError = applyUrlField(fieldsToUpdate, url);
+  if (urlError) return urlError;
+
+  applyBlueskyFields(fieldsToUpdate, blueskyDid, blueskyPostCid);
+
+  await db.update(blogPosts).set(fieldsToUpdate).where(eq(blogPosts.id, id));
+
+  return { success: true, message: "Changes Saved" };
+}
+
+async function handleSave(
+  db: Route.ActionArgs["context"]["db"],
+  id: number,
+  title: string | null,
+  body: string | null,
+  slug: string | null,
+  url: string | null,
+  blueskyDid: string | null,
+  blueskyPostCid: string | null
+): Promise<ActionResult> {
+  const fieldsToUpdate: PostFieldsUpdate = {};
+
+  if (title !== null) {
+    fieldsToUpdate.title = title;
+  }
+  if (body !== null) {
+    fieldsToUpdate.body = body;
+  }
+  if (!!slug) {
+    fieldsToUpdate.slug = slugify(slug);
+  }
+
+  const urlError = applyUrlField(fieldsToUpdate, url);
+  if (urlError) return urlError;
+
+  applyBlueskyFields(fieldsToUpdate, blueskyDid, blueskyPostCid);
+
+  await db.update(blogPosts).set(fieldsToUpdate).where(eq(blogPosts.id, id));
+
+  return { success: true, message: "Draft saved" };
+}
+
+async function handlePublish(
+  db: Route.ActionArgs["context"]["db"],
+  id: number
+): Promise<ActionResult> {
+  const post = await db
+    .select()
+    .from(blogPosts)
+    .where(eq(blogPosts.id, id))
+    .get();
+
+  if (!post) {
+    return { error: "Post not found" };
+  }
+
+  if (!post.slug || !post.title || !post.body) {
+    return {
+      error: "Post must have a title, slug, and body to be published",
+    };
+  }
+
+  const publishedDate = Math.floor(Date.now() / 1000);
+  await db.update(blogPosts).set({ publishedDate }).where(eq(blogPosts.id, id));
+
+  return { success: true, message: "Post published" };
+}
+
+async function handleUnpublish(
+  db: Route.ActionArgs["context"]["db"],
+  id: number
+): Promise<ActionResult> {
+  await db
+    .update(blogPosts)
+    .set({ publishedDate: null })
+    .where(eq(blogPosts.id, id));
+
+  return { success: true, message: "Post unpublished" };
+}
+
 export async function action({
   context,
   request,
@@ -70,173 +269,36 @@ export async function action({
     return { error: "Invalid intent" };
   }
 
-  if (intent === "autosave") {
-    const post = await context.db
-      .select()
-      .from(blogPosts)
-      .where(eq(blogPosts.id, id))
-      .get();
-    if (!post) {
-      return { error: "Post not found" };
-    }
-    if (post.publishedDate) {
-      return { error: "Cannot autosave a published post" };
-    }
-
-    const fieldsToUpdate: {
-      title?: string;
-      body?: string;
-      slug?: string;
-      url?: string | null;
-      blueskyDid?: string | null;
-      blueskyPostCid?: string | null;
-    } = {};
-
-    if (body !== null) {
-      fieldsToUpdate.body = body;
-      if (!post.slug || post.slug.startsWith("draft-")) {
-        const newSlug = slugify(title || "draft");
-        const existing = await context.db
-          .select()
-          .from(blogPosts)
-          .where(eq(blogPosts.slug, newSlug))
-          .get();
-
-        fieldsToUpdate.slug = existing ? `${newSlug}-${id}` : newSlug;
-      }
-
-      if (!post.title) {
-        fieldsToUpdate.title = body.split("\n")[0]?.trim() || "Untitled Draft";
-      }
-    }
-
-    if (title !== null) {
-      fieldsToUpdate.title = title;
-    }
-
-    if (!!slug) {
-      fieldsToUpdate.slug = slugify(slug);
-    }
-
-    if (url !== null && url.trim() !== "") {
-      const normalizedUrl = normalizeUrl(url.trim());
-      if (normalizedUrl && isValidUrl(normalizedUrl)) {
-        fieldsToUpdate.url = normalizedUrl;
-      } else {
-        return {
-          error: "Invalid URL format. Please use a valid HTTP/HTTPS URL.",
-        };
-      }
-    } else if (url !== null && url.trim() === "") {
-      fieldsToUpdate.url = null;
-    }
-
-    if (blueskyDid !== null && blueskyDid.trim() !== "") {
-      fieldsToUpdate.blueskyDid = blueskyDid;
-    } else if (blueskyDid !== null && blueskyDid.trim() === "") {
-      fieldsToUpdate.blueskyDid = null;
-    }
-
-    if (blueskyPostCid !== null && blueskyPostCid.trim() !== "") {
-      fieldsToUpdate.blueskyPostCid = blueskyPostCid;
-    } else if (blueskyPostCid !== null && blueskyPostCid.trim() === "") {
-      fieldsToUpdate.blueskyPostCid = null;
-    }
-
-    // Update existing draft
-    await context.db
-      .update(blogPosts)
-      .set(fieldsToUpdate)
-      .where(eq(blogPosts.id, id));
-
-    return { success: true, message: "Changes Saved" };
-  } else if (intent === "save") {
-    const fieldsToUpdate: {
-      title?: string;
-      body?: string;
-      slug?: string;
-      url?: string | null;
-      blueskyDid?: string | null;
-      blueskyPostCid?: string | null;
-    } = {};
-
-    if (title !== null) {
-      fieldsToUpdate.title = title;
-    }
-    if (body !== null) {
-      fieldsToUpdate.body = body;
-    }
-    if (!!slug) {
-      fieldsToUpdate.slug = slugify(slug);
-    }
-    if (url !== null && url.trim() !== "") {
-      const normalizedUrl = normalizeUrl(url.trim());
-      if (normalizedUrl && isValidUrl(normalizedUrl)) {
-        fieldsToUpdate.url = normalizedUrl;
-      } else {
-        return {
-          error: "Invalid URL format. Please use a valid HTTP/HTTPS URL.",
-        };
-      }
-    } else if (url !== null && url.trim() === "") {
-      fieldsToUpdate.url = null;
-    }
-    if (blueskyDid !== null && blueskyDid.trim() !== "") {
-      fieldsToUpdate.blueskyDid = blueskyDid;
-    } else if (blueskyDid !== null && blueskyDid.trim() === "") {
-      fieldsToUpdate.blueskyDid = null;
-    }
-    if (blueskyPostCid !== null && blueskyPostCid.trim() !== "") {
-      fieldsToUpdate.blueskyPostCid = blueskyPostCid;
-    } else if (blueskyPostCid !== null && blueskyPostCid.trim() === "") {
-      fieldsToUpdate.blueskyPostCid = null;
-    }
-
-    // Update existing draft
-    await context.db
-      .update(blogPosts)
-      .set(fieldsToUpdate)
-      .where(eq(blogPosts.id, id));
-
-    return { success: true, message: "Draft saved" };
-  } else if (intent === "publish") {
-    const publishedDate = Math.floor(Date.now() / 1000);
-
-    const post = await context.db
-      .select()
-      .from(blogPosts)
-      .where(eq(blogPosts.id, id))
-      .get();
-
-    if (!post) {
-      return { error: "Post not found" };
-    }
-
-    if (!post.slug || !post.title || !post.body) {
-      return {
-        error: "Post must have a title, slug, and body to be published",
-      };
-    }
-
-    await context.db
-      .update(blogPosts)
-      .set({
-        publishedDate,
-      })
-      .where(eq(blogPosts.id, id));
-    return {
-      success: true,
-      message: "Post published",
-    };
-  } else if (intent === "unpublish") {
-    await context.db
-      .update(blogPosts)
-      .set({ publishedDate: null })
-      .where(eq(blogPosts.id, id));
-    return { success: true, message: "Post unpublished" };
+  switch (intent) {
+    case "autosave":
+      return handleAutosave(
+        context.db,
+        id,
+        title,
+        body,
+        slug,
+        url,
+        blueskyDid,
+        blueskyPostCid
+      );
+    case "save":
+      return handleSave(
+        context.db,
+        id,
+        title,
+        body,
+        slug,
+        url,
+        blueskyDid,
+        blueskyPostCid
+      );
+    case "publish":
+      return handlePublish(context.db, id);
+    case "unpublish":
+      return handleUnpublish(context.db, id);
+    default:
+      return { error: "Unknown action" };
   }
-
-  return { error: "Unknown action" };
 }
 
 export function meta({}: Route.MetaArgs) {
@@ -248,28 +310,6 @@ export function meta({}: Route.MetaArgs) {
     },
   ];
 }
-const isValidUrl = (string: string) => {
-  try {
-    const url = new URL(string);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch (_) {
-    return false;
-  }
-};
-
-const normalizeUrl = (string: string) => {
-  try {
-    // Add https:// if no protocol is provided
-    if (!string.match(/^https?:\/\//)) {
-      string = "https://" + string;
-    }
-    const url = new URL(string);
-    return url.toString();
-  } catch (_) {
-    return null;
-  }
-};
-
 export default function BlogEdit({ loaderData }: Route.ComponentProps) {
   const fetcher = useFetcher<Awaited<ReturnType<typeof action>>>();
   const { textareaRef, content, setContent, isUploading } = useMarkdownTextArea(
@@ -624,7 +664,7 @@ export default function BlogEdit({ loaderData }: Route.ComponentProps) {
           Preview
         </a>
 
-        {fetcher.data?.error && (
+        {fetcher.data && "error" in fetcher.data && (
           <span className="error" style={{ marginLeft: "10px" }}>
             {fetcher.data.error}
           </span>

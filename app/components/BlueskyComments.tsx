@@ -142,7 +142,7 @@ function isPost(post: any): post is BlueskyPost {
   return post.$type === "app.bsky.feed.post";
 }
 
-export interface BlueskyReplyProps {
+interface BlueskyReplyProps {
   thread: ThreadView;
   depth?: number;
   skipFirst?: boolean;
@@ -265,7 +265,7 @@ function isThreadView(thread: unknown): thread is ThreadView {
   return (thread as ThreadView)?.$type === "app.bsky.feed.defs#threadViewPost";
 }
 
-export interface CommentsProps {
+interface CommentsProps {
   did: string;
   postCid: string;
   skipFirst?: boolean;
@@ -358,5 +358,3 @@ export default function BlueskyComments({
     </div>
   );
 }
-
-export { BlueskyReply, BlueskyEmbed, MultiImageLayout };

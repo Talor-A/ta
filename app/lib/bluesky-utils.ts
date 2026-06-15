@@ -3,9 +3,7 @@ export interface BlueskyPostInfo {
   cid: string;
 }
 
-export function parseBlueskyUrl(
-  url: string
-): { handle: string; cid: string } | null {
+function parseBlueskyUrl(url: string): { handle: string; cid: string } | null {
   try {
     const urlObj = new URL(url);
 
@@ -25,9 +23,7 @@ export function parseBlueskyUrl(
   }
 }
 
-export async function resolveBlueskyHandle(
-  handle: string
-): Promise<string | null> {
+async function resolveBlueskyHandle(handle: string): Promise<string | null> {
   try {
     const response = await fetch(
       `https://public.api.bsky.app/xrpc/com.atproto.identity.resolveHandle?handle=${encodeURIComponent(handle)}`

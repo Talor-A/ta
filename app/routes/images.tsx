@@ -79,8 +79,8 @@ export default function Images({ loaderData }: Route.ComponentProps) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+  const formatDate = (date: Date | string) => {
+    return new Date(date).toLocaleDateString();
   };
 
   return (
@@ -110,10 +110,6 @@ export default function Images({ loaderData }: Route.ComponentProps) {
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
             gap: "30px",
-            "@media (max-width: 640px)": {
-              gridTemplateColumns: "1fr",
-              gap: "20px",
-            },
           }}
         >
           {images.map((image) => (

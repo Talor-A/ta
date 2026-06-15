@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import type { Route } from "./+types/images";
 import { requireAuth } from "../lib/auth-utils";
+import styles from "./images.module.css";
 
 export async function loader({ context, request }: Route.LoaderArgs) {
   await requireAuth(request);
@@ -83,140 +84,63 @@ export default function Images({ loaderData }: Route.ComponentProps) {
     return new Date(date).toLocaleDateString();
   };
 
+  const markdownCopied = copied?.startsWith("markdown-") ?? false;
+
   return (
-    <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
-      <div style={{ marginBottom: "40px" }}>
-        <div style={{ marginBottom: "20px" }}>
-          <a
-            href="/blog"
-            style={{ textDecoration: "none", color: "#666", fontSize: "14px" }}
-          >
+    <main className={styles.main}>
+      <div className={styles.header}>
+        <div className={styles.backLinkWrapper}>
+          <a href="/blog" className={styles.backLink}>
             ← Back to blog
           </a>
         </div>
-        <h1 style={{ margin: 0, marginBottom: "10px" }}>Images</h1>
-        <p style={{ margin: 0, color: "#666" }}>
+        <h1 className={styles.title}>Images</h1>
+        <p className={styles.subtitle}>
           Click image to copy URL • Click filename to copy markdown
         </p>
       </div>
 
       {images.length === 0 ? (
-        <p style={{ color: "#666", textAlign: "center", marginTop: "60px" }}>
-          No images uploaded yet.
-        </p>
+        <p className={styles.empty}>No images uploaded yet.</p>
       ) : (
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-            gap: "30px",
-          }}
+          className={`${styles.grid}${markdownCopied ? ` ${styles.markdownCopied}` : ""}`}
         >
-          {images.map((image) => (
-            <div
-              key={image.key}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
-              }}
-            >
-              <div
-                onClick={() => copyImage(image.url)}
-                style={{
-                  aspectRatio: "1",
-                  borderRadius: "8px",
-                  overflow: "hidden",
-                  cursor: "pointer",
-                  border: "1px solid #e5e5e5",
-                  transition: "transform 0.1s ease",
-                  position: "relative",
-                }}
-                onMouseDown={(e) => {
-                  e.currentTarget.style.transform = "scale(0.98)";
-                }}
-                onMouseUp={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-                }}
-              >
-                <img
-                  src={image.url}
-                  alt={image.key}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
-                {mounted &&
-                  copied ===
-                    `image-${typeof window !== "undefined" ? window.location.origin : ""}${image.url}` && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        backgroundColor: "rgba(0, 0, 0, 0.8)",
-                        color: "white",
-                        padding: "8px 12px",
-                        borderRadius: "4px",
-                        fontSize: "12px",
-                      }}
-                    >
-                      Copied URL!
-                    </div>
-                  )}
-              </div>
+          {images.map((image) => {
+            const markdownKey = `markdown-![${image.key.replace(/\.[^/.]+$/, "")}](${image.url})`;
+            const imageCopiedKey = `image-${typeof window !== "undefined" ? window.location.origin : ""}${image.url}`;
+            const isMarkdownCopied = copied === markdownKey;
 
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: "4px" }}
-              >
-                <button
-                  onClick={() => copyMarkdown(image.key, image.url)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    font: "inherit",
-                    cursor: "pointer",
-                    textAlign: "left",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    color:
-                      copied ===
-                      `markdown-![${image.key.replace(/\.[^/.]+$/, "")}](${image.url})`
-                        ? "#007acc"
-                        : "#333",
-                    textDecoration: "underline",
-                    textDecorationColor: "transparent",
-                    transition: "all 0.1s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!copied?.startsWith("markdown-")) {
-                      e.currentTarget.style.textDecorationColor = "#007acc";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!copied?.startsWith("markdown-")) {
-                      e.currentTarget.style.textDecorationColor = "transparent";
-                    }
-                  }}
+            return (
+              <div key={image.key} className={styles.card}>
+                <div
+                  onClick={() => copyImage(image.url)}
+                  className={styles.imageButton}
                 >
-                  {copied ===
-                  `markdown-![${image.key.replace(/\.[^/.]+$/, "")}](${image.url})`
-                    ? "Copied markdown!"
-                    : image.key}
-                </button>
-                <div style={{ fontSize: "12px", color: "#666" }}>
-                  {formatFileSize(image.size)} • {formatDate(image.uploaded)}
+                  <img
+                    src={image.url}
+                    alt={image.key}
+                    className={styles.image}
+                  />
+                  {mounted && copied === imageCopiedKey && (
+                    <div className={styles.copiedOverlay}>Copied URL!</div>
+                  )}
+                </div>
+
+                <div className={styles.meta}>
+                  <button
+                    onClick={() => copyMarkdown(image.key, image.url)}
+                    className={`${styles.filenameButton}${isMarkdownCopied ? ` ${styles.filenameButtonCopied}` : ""}`}
+                  >
+                    {isMarkdownCopied ? "Copied markdown!" : image.key}
+                  </button>
+                  <div className={styles.details}>
+                    {formatFileSize(image.size)} • {formatDate(image.uploaded)}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </main>
